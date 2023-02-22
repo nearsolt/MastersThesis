@@ -13,6 +13,13 @@ namespace MastersThesis {
 #warning  To do: warnings handling, regrouping classes/methods, writing summaries and comments.
 
             /*
+             
+             
+                Переписать  отрисовки окна, добавить вариант для выбора конкретной области триангуляции и подгонки ее под контрол бокса
+                    переписать методы, добавить расширенные опции в виде контролов для тонких настроек триангиляции и интерполяции, 
+                    обработка кейса, когда gnuplot не определяет десятичное число.
+             
+              
                 #warning Set up a color scheme:
                     DrawNode(ref Graphics graphics, bool labelVisibility);
                     DrawEdge(ref Graphics graphics);

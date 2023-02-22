@@ -2,17 +2,35 @@
     partial class MainForm {
 
         #region Global Variables
+        /// <summary>
+        /// 
+        /// </summary>
         private enum TriangulationType : int {
             NodeGeneration = 0,
             GreedyTriangulation = 1,
             DelaunayTriangulation = 2,
             MeshRefinement = 3
         }
+        /// <summary>
+        /// 
+        /// </summary>
         private TriangulationType _triangulationType = TriangulationType.NodeGeneration;
+        /// <summary>
+        /// Размеры используемой области в pictureBox_mainPic
+        /// </summary>
         private SizeF _canvasSize;
+        /// <summary>
+        /// Точка начала координат в pictureBox_mainPic
+        /// </summary>
         private PointF _canvasOrgin;
         private int _counterInstance;
+        /// <summary>
+        /// Коэффициент измельчения
+        /// </summary>
         private int _meshRefinementCoefficient = 3;
+        /// <summary>
+        /// 
+        /// </summary>
         private readonly int _decimalPlaces = 2;
         private readonly int _timerInterval = 1000;
         private PlanarObjectStore _planarObjectStoreInstance;
@@ -20,6 +38,11 @@
         private List<Triangulation.MeshStore.Edge2DStore> _edgeStoreList;
         private List<Triangulation.MeshStore.Triangle2DStore> _triangleStoreList;
         #endregion
+
+        private double ExactSolution(double x, double y) {
+            return Math.Sin(x) * y + x * Math.Cos(y) + x + y;
+        }
+
 
         internal class PlanarObjectStore {
             private List<Node2D> _nodeList = new List<Node2D>();
@@ -176,6 +199,11 @@
                 }
 
                 internal int TriangleID { get { return this._triangleID; } }
+                internal Node2D FirstNode { get { return this._firstNode; } }
+                internal Node2D SecondNode { get { return this._secondNode; } }
+                internal Node2D ThirdNode { get { return this._thirdNode; } }
+                internal Node2D MiddleNode { get { return this._middleNode; } }
+
                 private PointF GetFirstPoint {
                     get {
                         return new PointF((float)(this._middleNode.GetPoint().X * (1 - this._scalingCoeff) + this._firstNode.GetPoint().X * this._scalingCoeff),

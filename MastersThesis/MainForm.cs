@@ -1,4 +1,6 @@
-﻿namespace MastersThesis {
+﻿//using static MastersThesis.MainForm.PlanarObjectStore;
+
+namespace MastersThesis {
     public partial class MainForm : Form {
         public MainForm() {
             InitializeComponent();
@@ -94,11 +96,17 @@
         #endregion
 
         #region Methods
+        /// <summary>
+        /// Инициализация используемой области в pictureBox_mainPic и точки начала координат 
+        /// </summary>
         private void InitializeCanvasSize() {
             this._canvasSize = new SizeF((float)(this.pictureBox_mainPic.Width * 0.9), (float)(this.pictureBox_mainPic.Height * 0.9));
             this._canvasOrgin = new PointF((float)(this.pictureBox_mainPic.Width * 0.5), (float)(this.pictureBox_mainPic.Height * 0.5));
             this.pictureBox_mainPic.Refresh();
         }
+        /// <summary>
+        /// Random-генерация узлов
+        /// </summary>
         private void GenerateRandomNodes() {
             this._triangulationType = TriangulationType.NodeGeneration;
             int nodeCount = (int)this.numericUpDown_numberOfNodes.Value;
@@ -111,19 +119,32 @@
             List<PlanarObjectStore.Node2D> tempNodeList = new List<PlanarObjectStore.Node2D>();
 
             Random random = new Random();
-            int xCoordLimit = (int)(this._canvasSize.Width * 0.5);
-            int yCoordLimit = (int)(this._canvasSize.Height * 0.5);
 
-            do {
-                for (int j = 0; j < nodeCount; j++) {
-                    PointF randPoint = new PointF(random.Next(-xCoordLimit * 100, xCoordLimit * 100), random.Next(-yCoordLimit * 100, yCoordLimit * 100));
-                    tempNodeList.Add(new PlanarObjectStore.Node2D(j, Math.Round(randPoint.X / 100, this._decimalPlaces, MidpointRounding.AwayFromZero),
-                                                                  Math.Round(randPoint.Y / 100, this._decimalPlaces, MidpointRounding.AwayFromZero)));
+            #region hf_1.1 хотфикс на лимит 
+            //            int xCoordLimit = (int)(this._canvasSize.Width * 0.5);
+            //            int yCoordLimit = (int)(this._canvasSize.Height * 0.5);
+
+            int xCoordLimit = 10;
+            int yCoordLimit = 10;
+            #endregion
+
+            tempNodeList.Add(new PlanarObjectStore.Node2D(0, -xCoordLimit, -yCoordLimit));
+            tempNodeList.Add(new PlanarObjectStore.Node2D(1, -xCoordLimit, yCoordLimit));
+            tempNodeList.Add(new PlanarObjectStore.Node2D(2, xCoordLimit, yCoordLimit));
+            tempNodeList.Add(new PlanarObjectStore.Node2D(3, xCoordLimit, -yCoordLimit));
+
+            if (nodeCount > 4) {
+                for (int j = 4; j < nodeCount; j++) {
+                    double tmpXCoord = Math.Round((float)random.Next(-xCoordLimit * 100, xCoordLimit * 100) / 100, this._decimalPlaces, MidpointRounding.AwayFromZero);
+                    double tmpYCoord = Math.Round((float)random.Next(-yCoordLimit * 100, yCoordLimit * 100) / 100, this._decimalPlaces, MidpointRounding.AwayFromZero);
+
+                    if (tempNodeList.Exists(obj => obj.XCoordinate == tmpXCoord && obj.YCoordinate == tmpYCoord)) {
+                        j--;
+                        continue;
+                    }
+                    tempNodeList.Add(new PlanarObjectStore.Node2D(j, tmpXCoord, tmpYCoord));
                 }
-                tempNodeList = tempNodeList.Distinct().ToList();
-                nodeCount -= tempNodeList.Count;
-
-            } while (nodeCount > 0);
+            }
             this._planarObjectStoreInstance.NodeList = tempNodeList;
             this.pictureBox_mainPic.Refresh();
         }
@@ -195,20 +216,250 @@
             this._planarObjectStoreInstance.TrackerList = tempTrackerList;
             this.pictureBox_mainPic.Refresh();
         }
+
+
         #endregion
 
         #region Test Buttons & Debug
 #warning To do: remove from the final version with control (button_test visible = false)
         private void button_test_Click(object sender, EventArgs e) {
-            MessageBox.Show($"Count temp list {nameof(this._planarObjectStoreInstance.NodeList)}: {this._planarObjectStoreInstance.NodeList.Count}\n" +
-                            $"Count temp list {nameof(this._planarObjectStoreInstance.EdgeList)}: {this._planarObjectStoreInstance.EdgeList.Count}\n" +
-                            $"Count temp list {nameof(this._planarObjectStoreInstance.TriangleList)}: {this._planarObjectStoreInstance.TriangleList.Count}\n" +
-                            $"Count temp list {nameof(this._planarObjectStoreInstance.TrackerList)}: {this._planarObjectStoreInstance.TrackerList.Count}\n" +
-                            $"Count diff nodes: {this._planarObjectStoreInstance.NodeList.DistinctBy(obj => new { obj.XCoordinate, obj.YCoordinate }).Count()}\n" +
-                            $"All nodes\n{string.Join("\n", this._planarObjectStoreInstance.NodeList.OrderBy(obj => obj.XCoordinate).Select(obj => $"<{obj.NodeID}; ({obj.XCoordinate}; {obj.YCoordinate})>"))}\n",
-                "Information", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+            //MessageBox.Show($"Count temp list {nameof(this._planarObjectStoreInstance.NodeList)}: {this._planarObjectStoreInstance.NodeList.Count}\n" +
+            //                $"Count temp list {nameof(this._planarObjectStoreInstance.EdgeList)}: {this._planarObjectStoreInstance.EdgeList.Count}\n" +
+            //                $"Count temp list {nameof(this._planarObjectStoreInstance.TriangleList)}: {this._planarObjectStoreInstance.TriangleList.Count}\n" +
+            //                $"Count temp list {nameof(this._planarObjectStoreInstance.TrackerList)}: {this._planarObjectStoreInstance.TrackerList.Count}\n" +
+            //                $"Count diff nodes: {this._planarObjectStoreInstance.NodeList.DistinctBy(obj => new { obj.XCoordinate, obj.YCoordinate }).Count()}\n"
+            //                //+ $"All nodes\n{string.Join("\n", this._planarObjectStoreInstance.NodeList.OrderBy(obj => obj.XCoordinate).Select(obj => $"<{obj.NodeID}; ({obj.XCoordinate}; {obj.YCoordinate})>"))}\n"
+            //                , "Information", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
 
+            int numOX = 100;
+            int numOy = 100;
+            MessageBox.Show($"количествое разбиениий по оси х = {numOX-1}, по оси  y= {numOy-1}");
+            ApproxFunction(numOX, numOy, _planarObjectStoreInstance);                    
         }
+        #endregion
+
+
+        #region new methods
+        /// <summary>
+        /// Вычисление лямбда функции
+        /// </summary>
+        /// <param name="firstNode"></param>
+        /// <param name="secondNode"></param>
+        /// <param name="thirdNode"></param>
+        /// <returns></returns>
+        private double[,] LambdaFunction(PlanarObjectStore.Node2D firstNode, PlanarObjectStore.Node2D secondNode, PlanarObjectStore.Node2D thirdNode) {
+            double[,] lambda = new double[3, 3];
+
+            lambda[0, 0] = 1;
+            lambda[0, 1] = firstNode.XCoordinate;
+            lambda[0, 2] = firstNode.YCoordinate;
+
+            lambda[1, 0] = 1;
+            lambda[1, 1] = secondNode.XCoordinate;
+            lambda[1, 2] = secondNode.YCoordinate;
+
+            lambda[2, 0] = 1;
+            lambda[2, 1] = thirdNode.XCoordinate;
+            lambda[2, 2] = thirdNode.YCoordinate;
+
+            return lambda;
+        }
+
+        /// <summary>
+        /// Вычисление обратной лямбда функции
+        /// </summary>
+        /// <param name="firstNode"></param>
+        /// <param name="secondNode"></param>
+        /// <param name="thirdNode"></param>
+        /// <returns></returns>
+        private double[,] InverseLambdaFunction(PlanarObjectStore.Node2D firstNode, PlanarObjectStore.Node2D secondNode, PlanarObjectStore.Node2D thirdNode) {
+            double[,] inverseLambda = new double[3, 3];
+
+            double x1 = firstNode.XCoordinate;
+            double y1 = firstNode.YCoordinate;
+
+            double x2 = secondNode.XCoordinate;
+            double y2 = secondNode.YCoordinate;
+
+            double x3 = thirdNode.XCoordinate;
+            double y3 = thirdNode.YCoordinate;
+
+            double det = x2 * y3 + x1 * y2 + y1 * x3 - y1 * x2 - y2 * x3 - x1 * y3;
+
+            inverseLambda[0, 0] = (x2 * y3 - y2 * x3) / det;
+            inverseLambda[0, 1] = (y1 * x3 - x1 * y3) / det;
+            inverseLambda[0, 2] = (x1 * y2 - y1 * x2) / det;
+
+            inverseLambda[1, 0] = (y2 - y3) / det;
+            inverseLambda[1, 1] = (y3 - y1) / det;
+            inverseLambda[1, 2] = (y1 - y2) / det;
+
+            inverseLambda[2, 0] = (x3 - x2) / det;
+            inverseLambda[2, 1] = (x1 - x3) / det;
+            inverseLambda[2, 2] = (x2 - x1) / det;
+
+            return inverseLambda;
+        }
+
+
+
+        /// <summary>
+        ///                 data (1,x,y)   -> 1x3
+        ///                 inverseLambda  -> 3x3
+        ///                 functionValues -> 3x1
+        ///                 
+        ///                 tmp = data x inverseLambda -> 1x3
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="firstNode"></param>
+        /// <param name="secondNode"></param>
+        /// <param name="thirdNode"></param>
+        /// <param name="functionValues"></param>
+        /// <returns></returns>
+        private double GJFunction(double[] data, PlanarObjectStore.Node2D firstNode, PlanarObjectStore.Node2D secondNode, PlanarObjectStore.Node2D thirdNode, double[] functionValues) {
+            double result = 0;
+            double[] tmp = new double[3];
+
+            double[,] inverseLambda = InverseLambdaFunction(firstNode, secondNode, thirdNode);
+
+            for (int j = 0; j < 3; j++) {
+                tmp[j] = 0;
+                for (int k = 0; k < 3; k++) {
+                    tmp[j] += data[k] * inverseLambda[k, j];
+                }
+            }
+            for (int j = 0; j < 3; j++) {
+                result += tmp[j] * functionValues[j];
+            }
+            return result;
+        }
+
+        private double GJFunctionTwo(double[] data, PlanarObjectStore.Node2D firstNode, PlanarObjectStore.Node2D secondNode, PlanarObjectStore.Node2D thirdNode, double[] functionValues) {
+            double result = 0;
+            double[] tmp = new double[3];
+
+            double[,] inverseLambda = InverseLambdaFunction(firstNode, secondNode, thirdNode);
+
+            for (int j = 0; j < 3; j++) {
+                tmp[j] = 0;
+                for (int k = 0; k < 3; k++) {
+                    tmp[j] += functionValues[k] * inverseLambda[k, j];
+                }
+            }
+            for (int j = 0; j < 3; j++) {
+                result += tmp[j] * data[j];
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Вычисление взвешенных расстояний
+        /// </summary>
+        /// <param name="curXCoord"></param>
+        /// <param name="curYCoord"></param>
+        /// <param name="midXCoord"></param>
+        /// <param name="midYCoord"></param>
+        /// <returns></returns>
+        private double WJFunction(double curXCoord, double curYCoord, double midXCoord, double midYCoord) {
+#warning Переключил на второй кейс, т.к. первый кейс некорректен
+            //return Math.Sqrt((curXCoord - midXCoord) * (curXCoord - midXCoord) + (curYCoord - midYCoord) * (curYCoord - midYCoord));
+            return 1/((curXCoord - midXCoord) * (curXCoord - midXCoord) + (curYCoord - midYCoord) * (curYCoord - midYCoord));
+        }
+
+        private double GFunction(double curX, double curY, List<PlanarObjectStore.Triangle2D> triangleList) {
+
+            double result = 0;
+            double w_cur = 0;
+            double w_sum = 0;
+            double[] data = new double[] { 1, curX, curY };
+#warning добавить массив длиной 8 для координат узлов и центра и переписать убрав кастомные классы из параметоров сзявных функций GJFunction
+            for (int j = 0; j < triangleList.Count; j++) {
+                w_cur = WJFunction(curX, curY, triangleList[j].MiddleNode.XCoordinate, triangleList[j].MiddleNode.YCoordinate);
+
+                double[] functionValues = new double[] {
+                    ExactSolution(triangleList[j].FirstNode.XCoordinate,triangleList[j].FirstNode.YCoordinate),
+                    ExactSolution(triangleList[j].SecondNode.XCoordinate,triangleList[j].SecondNode.YCoordinate),
+                    ExactSolution(triangleList[j].ThirdNode.XCoordinate,triangleList[j].ThirdNode.YCoordinate)
+                };
+                w_sum += w_cur;
+#warning Переключил на перйвый кейс, т.к. второй - точно ошибочный
+                result += w_cur * GJFunction(data, triangleList[j].FirstNode, triangleList[j].SecondNode, triangleList[j].ThirdNode, functionValues);
+            }
+
+            return result /= w_sum;
+        }
+
+        private void ApproxFunction(int nodeNum_oX, int nodeNum_oY, PlanarObjectStore planarObjectStore) {
+
+            #region hf_1.2 хотфикс на лимит 
+            //int xCoordLimit = (int)(this._canvasSize.Width * 0.5);
+            //int yCoordLimit = (int)(this._canvasSize.Height * 0.5);
+
+            //double h_oX = this._canvasSize.Width / (nodeNum_oX - 1);
+            //double h_oY = this._canvasSize.Height / (nodeNum_oY - 1);
+
+            //double[] xVal = new double[nodeNum_oX * nodeNum_oY];
+            //double[] yVal = new double[nodeNum_oX * nodeNum_oY];
+            //double[] zVal = new double[nodeNum_oX * nodeNum_oY];
+            //double[] exactVal = new double[nodeNum_oX * nodeNum_oY];
+            //int index = 0;
+
+            //for (double j = -xCoordLimit; j <= xCoordLimit; j += h_oX) {
+            //    for (double k = -yCoordLimit; k <= yCoordLimit; k += h_oY) {
+            //        xVal[index] = j;
+            //        yVal[index] = k;
+            //        zVal[index] = GFunction(j, k, planarObjectStore.TriangleList);
+            //        exactVal[index] = ExactSolution(j, k);
+            //        index++;
+            //    }
+            //}
+
+            double xCoordLimit = 10.0;
+            double yCoordLimit = 10.0;
+
+            double h_oX = 20.0 / (nodeNum_oX - 1);
+            double h_oY = 20.0 / (nodeNum_oY - 1);
+            
+            double[] xVal = new double[nodeNum_oX * nodeNum_oY];
+            double[] yVal = new double[nodeNum_oX * nodeNum_oY];
+            double[] zVal = new double[nodeNum_oX * nodeNum_oY];
+            double[] exactVal = new double[nodeNum_oX * nodeNum_oY];
+            int index = 0;
+
+            for (double j = 0; j < nodeNum_oX; j++) {
+                for (double k = 0; k < nodeNum_oY; k++) {
+                    xVal[index] = -xCoordLimit + j * h_oX;
+                    yVal[index] = -yCoordLimit+k * h_oY;
+                    zVal[index] = GFunction(xVal[index], yVal[index], planarObjectStore.TriangleList);
+                    exactVal[index] = ExactSolution(xVal[index], yVal[index]);
+                    index++;
+                }
+            }
+            #endregion
+
+            GnuPlot.Set("dgrid3d 40,40,2");
+            GnuPlot.WriteLine($"set xrange[{-xCoordLimit}:{xCoordLimit}]");
+            GnuPlot.WriteLine($"set yrange[{-yCoordLimit}:{yCoordLimit}]");
+            //GnuPlot.Set("zrange[-50:50]");
+            GnuPlot.HoldOn();
+           
+            
+            int numC = planarObjectStore.NodeList.Count;
+            double[] xValQ = new double[numC];
+            double[] yValQ = new double[numC];
+            double[] fValQ = new double[numC];
+            for(int indexx=0; indexx< numC; indexx++) {
+                xValQ[indexx] = planarObjectStore.NodeList[indexx].XCoordinate;
+                yValQ[indexx] = planarObjectStore.NodeList[indexx].YCoordinate;
+                fValQ[indexx] = ExactSolution(xValQ[indexx], yValQ[indexx]);
+            }
+            GnuPlot.SPlot(xValQ, yValQ, fValQ);
+            MessageBox.Show("qqwe");
+            GnuPlot.SPlot(xVal, yVal, zVal);
+            //GnuPlot.SPlot(xVal, yVal, exactVal, "with pm3d");
+        }
+
+
         #endregion
     }
 }
