@@ -27,7 +27,6 @@ namespace MastersThesis {
                     DrawTriangleAndCircumcircle(ref Graphics graphics, bool labelVisibility, bool meshVisibility, bool circumcircleVisibility);
 
                 #warning Rename some var:
-                    SetIncircle();
                     GetAngleBetween(Edge2DStore withEdge, Edge2DStore edge);
             */
         }

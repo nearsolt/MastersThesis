@@ -14,7 +14,7 @@ namespace MastersThesis {
             InitializeCanvasSize();
         }
         private void timer_animationTimer_Tick(object sender, EventArgs e) {
-            if (this._counterInstance == this._planarObjectStoreInstance.TrackerList.Count - 1) {
+            if (this._counterInstance == this._planarObjectStoreInstance.AnimationList.Count - 1) {
                 this._counterInstance = 0;
             } else {
                 this._counterInstance++;
@@ -116,22 +116,22 @@ namespace MastersThesis {
             this._triangleStoreList = new List<Triangulation.MeshStore.Triangle2DStore>();
 
             this._planarObjectStoreInstance = new PlanarObjectStore();
-            List<PlanarObjectStore.Node2D> tempNodeList = new List<PlanarObjectStore.Node2D>();
+            List<PlanarObjectStore.Node> tempNodeList = new List<PlanarObjectStore.Node>();
 
             Random random = new Random();
 
             #region hf_1.1 хотфикс на лимит 
-            //            int xCoordLimit = (int)(this._canvasSize.Width * 0.5);
-            //            int yCoordLimit = (int)(this._canvasSize.Height * 0.5);
+            int xCoordLimit = (int)(this._canvasSize.Width * 0.5);
+            int yCoordLimit = (int)(this._canvasSize.Height * 0.5);
 
-            int xCoordLimit = 10;
-            int yCoordLimit = 10;
+            //int xCoordLimit = 10;
+            //int yCoordLimit = 10;
             #endregion
 
-            tempNodeList.Add(new PlanarObjectStore.Node2D(0, -xCoordLimit, -yCoordLimit));
-            tempNodeList.Add(new PlanarObjectStore.Node2D(1, -xCoordLimit, yCoordLimit));
-            tempNodeList.Add(new PlanarObjectStore.Node2D(2, xCoordLimit, yCoordLimit));
-            tempNodeList.Add(new PlanarObjectStore.Node2D(3, xCoordLimit, -yCoordLimit));
+            tempNodeList.Add(new PlanarObjectStore.Node(0, -xCoordLimit, -yCoordLimit));
+            tempNodeList.Add(new PlanarObjectStore.Node(1, -xCoordLimit, yCoordLimit));
+            tempNodeList.Add(new PlanarObjectStore.Node(2, xCoordLimit, yCoordLimit));
+            tempNodeList.Add(new PlanarObjectStore.Node(3, xCoordLimit, -yCoordLimit));
 
             if (nodeCount > 4) {
                 for (int j = 4; j < nodeCount; j++) {
@@ -142,7 +142,7 @@ namespace MastersThesis {
                         j--;
                         continue;
                     }
-                    tempNodeList.Add(new PlanarObjectStore.Node2D(j, tmpXCoord, tmpYCoord));
+                    tempNodeList.Add(new PlanarObjectStore.Node(j, tmpXCoord, tmpYCoord));
                 }
             }
             this._planarObjectStoreInstance.NodeList = tempNodeList;
@@ -156,16 +156,16 @@ namespace MastersThesis {
             }
             this._triangulationType = TriangulationType.GreedyTriangulation;
             this._counterInstance = 0;
-            this._planarObjectStoreInstance.EdgeList = new List<PlanarObjectStore.Edge2D>();
-            this._planarObjectStoreInstance.TrackerList = new List<PlanarObjectStore.AnimationTracker>();
+            this._planarObjectStoreInstance.EdgeList = new List<PlanarObjectStore.Edge>();
+            this._planarObjectStoreInstance.AnimationList = new List<PlanarObjectStore.TweenAnimation>();
 
-            List<PlanarObjectStore.Edge2D> tempEdgeList = new List<PlanarObjectStore.Edge2D>();
-            List<PlanarObjectStore.AnimationTracker> tempTrackerList = new List<PlanarObjectStore.AnimationTracker>();
+            List<PlanarObjectStore.Edge> tempEdgeList = new List<PlanarObjectStore.Edge>();
+            List<PlanarObjectStore.TweenAnimation> tempTrackerList = new List<PlanarObjectStore.TweenAnimation>();
 
             (new Triangulation()).GreedyTriangulationStart(this._planarObjectStoreInstance.NodeList, ref tempEdgeList, ref tempTrackerList);
 
             this._planarObjectStoreInstance.EdgeList = tempEdgeList;
-            this._planarObjectStoreInstance.TrackerList = tempTrackerList;
+            this._planarObjectStoreInstance.AnimationList = tempTrackerList;
             this.pictureBox_mainPic.Refresh();
         }
         private void DelaunayTriangulation() {
@@ -176,19 +176,19 @@ namespace MastersThesis {
             }
             this._triangulationType = TriangulationType.DelaunayTriangulation;
             this._counterInstance = 0;
-            this._planarObjectStoreInstance.EdgeList = new List<PlanarObjectStore.Edge2D>();
-            this._planarObjectStoreInstance.TrackerList = new List<PlanarObjectStore.AnimationTracker>();
+            this._planarObjectStoreInstance.EdgeList = new List<PlanarObjectStore.Edge>();
+            this._planarObjectStoreInstance.AnimationList = new List<PlanarObjectStore.TweenAnimation>();
 
-            List<PlanarObjectStore.Edge2D> tempEdgeList = new List<PlanarObjectStore.Edge2D>();
-            List<PlanarObjectStore.Triangle2D> tempTriangleList = new List<PlanarObjectStore.Triangle2D>();
-            List<PlanarObjectStore.AnimationTracker> tempTrackerList = new List<PlanarObjectStore.AnimationTracker>();
+            List<PlanarObjectStore.Edge> tempEdgeList = new List<PlanarObjectStore.Edge>();
+            List<PlanarObjectStore.Triangle> tempTriangleList = new List<PlanarObjectStore.Triangle>();
+            List<PlanarObjectStore.TweenAnimation> tempTrackerList = new List<PlanarObjectStore.TweenAnimation>();
 
             (new Triangulation()).DelaunayTriangulationStart(this._planarObjectStoreInstance.NodeList, ref tempEdgeList, ref tempTriangleList, ref tempTrackerList,
                                                              ref this._nodeStoreList, ref this._edgeStoreList, ref this._triangleStoreList);
 
             this._planarObjectStoreInstance.EdgeList = tempEdgeList;
             this._planarObjectStoreInstance.TriangleList = tempTriangleList;
-            this._planarObjectStoreInstance.TrackerList = tempTrackerList;
+            this._planarObjectStoreInstance.AnimationList = tempTrackerList;
             this.pictureBox_mainPic.Refresh();
         }
         private void MeshRefinement() {
@@ -201,11 +201,11 @@ namespace MastersThesis {
             this._meshRefinementCoefficient = (int)this.numericUpDown_meshRefinementCoefficient.Value;
             this._counterInstance = 0;
 
-            List<PlanarObjectStore.Node2D> tempNodeList = new List<PlanarObjectStore.Node2D>();
-            List<PlanarObjectStore.Edge2D> tempEdgeList = new List<PlanarObjectStore.Edge2D>();
-            List<PlanarObjectStore.Triangle2D> tempTriangleList = new List<PlanarObjectStore.Triangle2D>();
-            List<PlanarObjectStore.AnimationTracker> tempTrackerList = new List<PlanarObjectStore.AnimationTracker>();
-            PlanarObjectStore.AnimationTracker tempTracker = this._planarObjectStoreInstance.TrackerList.LastOrDefault();
+            List<PlanarObjectStore.Node> tempNodeList = new List<PlanarObjectStore.Node>();
+            List<PlanarObjectStore.Edge> tempEdgeList = new List<PlanarObjectStore.Edge>();
+            List<PlanarObjectStore.Triangle> tempTriangleList = new List<PlanarObjectStore.Triangle>();
+            List<PlanarObjectStore.TweenAnimation> tempTrackerList = new List<PlanarObjectStore.TweenAnimation>();
+            PlanarObjectStore.TweenAnimation tempTracker = this._planarObjectStoreInstance.AnimationList.LastOrDefault();
 
             (new Triangulation()).MeshRefinementStart(ref tempNodeList, ref tempEdgeList, ref tempTriangleList, ref tempTrackerList, tempTracker, this._decimalPlaces,
                                                       this._meshRefinementCoefficient, this._nodeStoreList, this._edgeStoreList, this._triangleStoreList);
@@ -213,7 +213,7 @@ namespace MastersThesis {
             this._planarObjectStoreInstance.NodeList = tempNodeList;
             this._planarObjectStoreInstance.EdgeList = tempEdgeList;
             this._planarObjectStoreInstance.TriangleList = tempTriangleList;
-            this._planarObjectStoreInstance.TrackerList = tempTrackerList;
+            this._planarObjectStoreInstance.AnimationList = tempTrackerList;
             this.pictureBox_mainPic.Refresh();
         }
 
@@ -226,7 +226,7 @@ namespace MastersThesis {
             //MessageBox.Show($"Count temp list {nameof(this._planarObjectStoreInstance.NodeList)}: {this._planarObjectStoreInstance.NodeList.Count}\n" +
             //                $"Count temp list {nameof(this._planarObjectStoreInstance.EdgeList)}: {this._planarObjectStoreInstance.EdgeList.Count}\n" +
             //                $"Count temp list {nameof(this._planarObjectStoreInstance.TriangleList)}: {this._planarObjectStoreInstance.TriangleList.Count}\n" +
-            //                $"Count temp list {nameof(this._planarObjectStoreInstance.TrackerList)}: {this._planarObjectStoreInstance.TrackerList.Count}\n" +
+            //                $"Count temp list {nameof(this._planarObjectStoreInstance.AnimationList)}: {this._planarObjectStoreInstance.AnimationList.Count}\n" +
             //                $"Count diff nodes: {this._planarObjectStoreInstance.NodeList.DistinctBy(obj => new { obj.XCoordinate, obj.YCoordinate }).Count()}\n"
             //                //+ $"All nodes\n{string.Join("\n", this._planarObjectStoreInstance.NodeList.OrderBy(obj => obj.XCoordinate).Select(obj => $"<{obj.NodeID}; ({obj.XCoordinate}; {obj.YCoordinate})>"))}\n"
             //                , "Information", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
@@ -247,7 +247,7 @@ namespace MastersThesis {
         /// <param name="secondNode"></param>
         /// <param name="thirdNode"></param>
         /// <returns></returns>
-        private double[,] LambdaFunction(PlanarObjectStore.Node2D firstNode, PlanarObjectStore.Node2D secondNode, PlanarObjectStore.Node2D thirdNode) {
+        private double[,] LambdaFunction(PlanarObjectStore.Node firstNode, PlanarObjectStore.Node secondNode, PlanarObjectStore.Node thirdNode) {
             double[,] lambda = new double[3, 3];
 
             lambda[0, 0] = 1;
@@ -272,7 +272,7 @@ namespace MastersThesis {
         /// <param name="secondNode"></param>
         /// <param name="thirdNode"></param>
         /// <returns></returns>
-        private double[,] InverseLambdaFunction(PlanarObjectStore.Node2D firstNode, PlanarObjectStore.Node2D secondNode, PlanarObjectStore.Node2D thirdNode) {
+        private double[,] InverseLambdaFunction(PlanarObjectStore.Node firstNode, PlanarObjectStore.Node secondNode, PlanarObjectStore.Node thirdNode) {
             double[,] inverseLambda = new double[3, 3];
 
             double x1 = firstNode.XCoordinate;
@@ -316,7 +316,7 @@ namespace MastersThesis {
         /// <param name="thirdNode"></param>
         /// <param name="functionValues"></param>
         /// <returns></returns>
-        private double GJFunction(double[] data, PlanarObjectStore.Node2D firstNode, PlanarObjectStore.Node2D secondNode, PlanarObjectStore.Node2D thirdNode, double[] functionValues) {
+        private double GJFunction(double[] data, PlanarObjectStore.Node firstNode, PlanarObjectStore.Node secondNode, PlanarObjectStore.Node thirdNode, double[] functionValues) {
             double result = 0;
             double[] tmp = new double[3];
 
@@ -334,7 +334,7 @@ namespace MastersThesis {
             return result;
         }
 
-        private double GJFunctionTwo(double[] data, PlanarObjectStore.Node2D firstNode, PlanarObjectStore.Node2D secondNode, PlanarObjectStore.Node2D thirdNode, double[] functionValues) {
+        private double GJFunctionTwo(double[] data, PlanarObjectStore.Node firstNode, PlanarObjectStore.Node secondNode, PlanarObjectStore.Node thirdNode, double[] functionValues) {
             double result = 0;
             double[] tmp = new double[3];
 
@@ -366,7 +366,7 @@ namespace MastersThesis {
             return 1/((curXCoord - midXCoord) * (curXCoord - midXCoord) + (curYCoord - midYCoord) * (curYCoord - midYCoord));
         }
 
-        private double GFunction(double curX, double curY, List<PlanarObjectStore.Triangle2D> triangleList) {
+        private double GFunction(double curX, double curY, List<PlanarObjectStore.Triangle> triangleList) {
 
             double result = 0;
             double w_cur = 0;
@@ -374,7 +374,7 @@ namespace MastersThesis {
             double[] data = new double[] { 1, curX, curY };
 #warning добавить массив длиной 8 для координат узлов и центра и переписать убрав кастомные классы из параметоров сзявных функций GJFunction
             for (int j = 0; j < triangleList.Count; j++) {
-                w_cur = WJFunction(curX, curY, triangleList[j].MiddleNode.XCoordinate, triangleList[j].MiddleNode.YCoordinate);
+                w_cur = WJFunction(curX, curY, triangleList[j].GeometricCenter.XCoordinate, triangleList[j].GeometricCenter.YCoordinate);
 
                 double[] functionValues = new double[] {
                     ExactSolution(triangleList[j].FirstNode.XCoordinate,triangleList[j].FirstNode.YCoordinate),
@@ -392,17 +392,17 @@ namespace MastersThesis {
         private void ApproxFunction(int nodeNum_oX, int nodeNum_oY, PlanarObjectStore planarObjectStore) {
 
             #region hf_1.2 хотфикс на лимит 
-            //int xCoordLimit = (int)(this._canvasSize.Width * 0.5);
-            //int yCoordLimit = (int)(this._canvasSize.Height * 0.5);
+            int xCoordLimit = (int)(this._canvasSize.Width * 0.5);
+            int yCoordLimit = (int)(this._canvasSize.Height * 0.5);
 
-            //double h_oX = this._canvasSize.Width / (nodeNum_oX - 1);
-            //double h_oY = this._canvasSize.Height / (nodeNum_oY - 1);
+            double h_oX = this._canvasSize.Width / (nodeNum_oX - 1);
+            double h_oY = this._canvasSize.Height / (nodeNum_oY - 1);
 
-            //double[] xVal = new double[nodeNum_oX * nodeNum_oY];
-            //double[] yVal = new double[nodeNum_oX * nodeNum_oY];
-            //double[] zVal = new double[nodeNum_oX * nodeNum_oY];
-            //double[] exactVal = new double[nodeNum_oX * nodeNum_oY];
-            //int index = 0;
+            double[] xVal = new double[nodeNum_oX * nodeNum_oY];
+            double[] yVal = new double[nodeNum_oX * nodeNum_oY];
+            double[] zVal = new double[nodeNum_oX * nodeNum_oY];
+            double[] exactVal = new double[nodeNum_oX * nodeNum_oY];
+            int index = 0;
 
             //for (double j = -xCoordLimit; j <= xCoordLimit; j += h_oX) {
             //    for (double k = -yCoordLimit; k <= yCoordLimit; k += h_oY) {
@@ -414,22 +414,22 @@ namespace MastersThesis {
             //    }
             //}
 
-            double xCoordLimit = 10.0;
-            double yCoordLimit = 10.0;
+            //double xCoordLimit = 10.0;
+            //double yCoordLimit = 10.0;
 
-            double h_oX = 20.0 / (nodeNum_oX - 1);
-            double h_oY = 20.0 / (nodeNum_oY - 1);
-            
-            double[] xVal = new double[nodeNum_oX * nodeNum_oY];
-            double[] yVal = new double[nodeNum_oX * nodeNum_oY];
-            double[] zVal = new double[nodeNum_oX * nodeNum_oY];
-            double[] exactVal = new double[nodeNum_oX * nodeNum_oY];
-            int index = 0;
+            //double h_oX = 20.0 / (nodeNum_oX - 1);
+            //double h_oY = 20.0 / (nodeNum_oY - 1);
+
+            //double[] xVal = new double[nodeNum_oX * nodeNum_oY];
+            //double[] yVal = new double[nodeNum_oX * nodeNum_oY];
+            //double[] zVal = new double[nodeNum_oX * nodeNum_oY];
+            //double[] exactVal = new double[nodeNum_oX * nodeNum_oY];
+            //int index = 0;
 
             for (double j = 0; j < nodeNum_oX; j++) {
                 for (double k = 0; k < nodeNum_oY; k++) {
                     xVal[index] = -xCoordLimit + j * h_oX;
-                    yVal[index] = -yCoordLimit+k * h_oY;
+                    yVal[index] = -yCoordLimit + k * h_oY;
                     zVal[index] = GFunction(xVal[index], yVal[index], planarObjectStore.TriangleList);
                     exactVal[index] = ExactSolution(xVal[index], yVal[index]);
                     index++;

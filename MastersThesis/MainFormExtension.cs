@@ -1,9 +1,22 @@
-﻿namespace MastersThesis {
+﻿using static MastersThesis.Triangulation.MeshStore;
+
+namespace MastersThesis {
     partial class MainForm {
+
+        /*
+         * ToDo: рефакторинг 
+         *                  не обработано: 
+         *                              регион Global Variables в классе MainForm
+         *                              регион Methods          в классе PlanarObjectStore
+         *                              функция ExactSolution
+         * 
+         *                  обработка ворнингов "w3: rename region" в классе и подклассах PlanarObjectStore
+         */
+
 
         #region Global Variables
         /// <summary>
-        /// 
+        /// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         /// </summary>
         private enum TriangulationType : int {
             NodeGeneration = 0,
@@ -12,7 +25,7 @@
             MeshRefinement = 3
         }
         /// <summary>
-        /// 
+        /// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         /// </summary>
         private TriangulationType _triangulationType = TriangulationType.NodeGeneration;
         /// <summary>
@@ -23,6 +36,9 @@
         /// Точка начала координат в pictureBox_mainPic
         /// </summary>
         private PointF _canvasOrgin;
+        /// <summary>
+        /// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// </summary>
         private int _counterInstance;
         /// <summary>
         /// Коэффициент измельчения
@@ -34,9 +50,9 @@
         private readonly int _decimalPlaces = 2;
         private readonly int _timerInterval = 1000;
         private PlanarObjectStore _planarObjectStoreInstance;
-        private List<Triangulation.MeshStore.Node2DStore> _nodeStoreList;
-        private List<Triangulation.MeshStore.Edge2DStore> _edgeStoreList;
-        private List<Triangulation.MeshStore.Triangle2DStore> _triangleStoreList;
+        private List<Node2DStore> _nodeStoreList;
+        private List<Edge2DStore> _edgeStoreList;
+        private List<Triangle2DStore> _triangleStoreList;
         #endregion
 
         private double ExactSolution(double x, double y) {
@@ -45,242 +61,501 @@
 
 
         internal class PlanarObjectStore {
-            private List<Node2D> _nodeList = new List<Node2D>();
-            private List<Edge2D> _edgeList = new List<Edge2D>();
-            private List<Triangle2D> _triangleList = new List<Triangle2D>();
-            private List<AnimationTracker> _trackerList = new List<AnimationTracker>();
+            #region Private Class Variables
+            /// <summary>
+            /// Список узлов
+            /// </summary>
+            private List<Node> _nodeList;
+            /// <summary>
+            /// Список ребер
+            /// </summary>
+            private List<Edge> _edgeList;
+            /// <summary>
+            /// Список треугольников
+            /// </summary>
+            private List<Triangle> _triangleList;
+            /// <summary>
+            /// Список элементов анимации
+            /// </summary>
+            private List<TweenAnimation> _animationList;
+            #endregion
 
+#warning w3: rename region
+            #region ctor & set/get
+            /// <summary>
+            /// Конструктор
+            /// </summary>
             internal PlanarObjectStore() {
-                this._nodeList = new List<Node2D>();
-                this._edgeList = new List<Edge2D>();
-                this._trackerList = new List<AnimationTracker>();
+                _nodeList = new List<Node>();
+                _edgeList = new List<Edge>();
+                _triangleList = new List<Triangle>();
+                _animationList = new List<TweenAnimation>();
             }
 
-            internal List<Node2D> NodeList {
-                get { return this._nodeList; }
-                set { this._nodeList = value; }
+            /// <summary>
+            /// Список узлов
+            /// </summary>
+            internal List<Node> NodeList {
+                get { return _nodeList; }
+                set { _nodeList = value; }
             }
-            internal List<Edge2D> EdgeList {
-                get { return this._edgeList; }
-                set { this._edgeList = value; }
+            /// <summary>
+            /// Список ребер
+            /// </summary>
+            internal List<Edge> EdgeList {
+                get { return _edgeList; }
+                set { _edgeList = value; }
             }
-            internal List<Triangle2D> TriangleList {
-                get { return this._triangleList; }
-                set { this._triangleList = value; }
+            /// <summary>
+            /// Список треугольников
+            /// </summary>
+            internal List<Triangle> TriangleList {
+                get { return _triangleList; }
+                set { _triangleList = value; }
             }
-            internal List<AnimationTracker> TrackerList {
-                get { return this._trackerList; }
-                set { this._trackerList = value; }
+            /// <summary>
+            /// Список элементов анимации
+            /// </summary>
+            internal List<TweenAnimation> AnimationList {
+                get { return _animationList; }
+                set { _animationList = value; }
             }
+            #endregion
 
+            #region Methods
             internal void DrawPicture(ref Graphics graphics, bool labelVisibility) {
-                Graphics gr = graphics;
-                this._nodeList.ForEach(obj => obj.DrawNode(ref gr, labelVisibility));
+                //Graphics gr = graphics;
+                //_nodeList.ForEach(obj => obj.DrawNode(ref gr, labelVisibility));
+                for (int j = 0; j < _nodeList.Count; j++) {
+                    _nodeList[j].DrawNode(ref graphics, labelVisibility);
+                }
             }
             internal void DrawPicture(ref Graphics graphics, bool labelVisibility, bool tweenAnimation, ref int counterInstance) {
                 Graphics gr = graphics;
                 if (tweenAnimation) {
-                    if (counterInstance >= 0 && this._trackerList.Count != 0) {
-                        this._trackerList[counterInstance].EdgeList.ForEach(obj => obj.DrawEdge(ref gr));
+                    if (counterInstance >= 0 && _animationList.Count != 0) {
+                        //_animationList[counterInstance].EdgeList.ForEach(obj => obj.DrawEdge(ref gr));
+                        for (int j = 0; j < _animationList[counterInstance].EdgeList.Count; j++) {
+                            _animationList[counterInstance].EdgeList[j].DrawEdge(ref gr);
+                        }
                     }
                 } else {
-                    this._edgeList.ForEach(obj => obj.DrawEdge(ref gr));
+                    //_edgeList.ForEach(obj => obj.DrawEdge(ref gr));
+                    for (int j = 0; j < _edgeList.Count; j++) {
+                        _edgeList[j].DrawEdge(ref gr);
+                    }
                 }
-                this._nodeList.ForEach(obj => obj.DrawNode(ref gr, labelVisibility));
+                //_nodeList.ForEach(obj => obj.DrawNode(ref gr, labelVisibility));
+                for (int j = 0; j < _nodeList.Count; j++) {
+                    _nodeList[j].DrawNode(ref gr, labelVisibility);
+                }
             }
             internal void DrawPicture(ref Graphics graphics, bool labelVisibility, bool tweenAnimation, ref int counterInstance, bool meshVisibility) {
                 Graphics gr = graphics;
                 if (tweenAnimation) {
-                    if (counterInstance >= 0 && this._trackerList.Count != 0) {
-                        this._trackerList[counterInstance].EdgeList.ForEach(obj => obj.DrawEdge(ref gr));
-                        this._trackerList[counterInstance].TriangleList.ForEach(obj => obj.DrawTriangle(ref gr, labelVisibility, meshVisibility));
+                    if (counterInstance >= 0 && _animationList.Count != 0) {
+                        //_animationList[counterInstance].EdgeList.ForEach(obj => obj.DrawEdge(ref gr));
+                        for (int j = 0; j < _animationList[counterInstance].EdgeList.Count; j++) {
+                            _animationList[counterInstance].EdgeList[j].DrawEdge(ref gr);
+                        }
+                        //_animationList[counterInstance].TriangleList.ForEach(obj => obj.DrawTriangle(ref gr, labelVisibility, meshVisibility));
+                        for (int j = 0; j < _animationList[counterInstance].TriangleList.Count; j++) {
+                            _animationList[counterInstance].TriangleList[j].DrawTriangle(ref gr, labelVisibility, meshVisibility);
+                        }
                     }
                 } else {
-                    this._edgeList.ForEach(obj => obj.DrawEdge(ref gr));
-                    this._triangleList.ForEach(obj => obj.DrawTriangle(ref gr, labelVisibility, meshVisibility));
+                    //_edgeList.ForEach(obj => obj.DrawEdge(ref gr));
+                    for (int j = 0; j < _edgeList.Count; j++) {
+                        _edgeList[j].DrawEdge(ref gr);
+                    }
+                    //_triangleList.ForEach(obj => obj.DrawTriangle(ref gr, labelVisibility, meshVisibility));
+                    for (int j = 0; j < _triangleList.Count; j++) {
+                        _triangleList[j].DrawTriangle(ref gr, labelVisibility, meshVisibility);
+                    }
                 }
-                this._nodeList.ForEach(obj => obj.DrawNode(ref gr, labelVisibility));
+                //_nodeList.ForEach(obj => obj.DrawNode(ref gr, labelVisibility));
+                for (int j = 0; j < _nodeList.Count; j++) {
+                    _nodeList[j].DrawNode(ref gr, labelVisibility);
+                }
             }
             internal void DrawPicture(ref Graphics graphics, bool labelVisibility, bool tweenAnimation, ref int counterInstance, bool meshVisibility, bool circumcircleVisibility) {
                 Graphics gr = graphics;
                 if (tweenAnimation) {
-                    if (counterInstance >= 0 && this._trackerList.Count != 0) {
-                        this._trackerList[counterInstance].EdgeList.ForEach(obj => obj.DrawEdge(ref gr));
-                        this._trackerList[counterInstance].TriangleList.ForEach(obj => obj.DrawTriangleAndCircumcircle(ref gr, labelVisibility, meshVisibility, circumcircleVisibility));
+                    if (counterInstance >= 0 && _animationList.Count != 0) {
+                        //_animationList[counterInstance].EdgeList.ForEach(obj => obj.DrawEdge(ref gr));
+                        for (int j = 0; j < _animationList[counterInstance].EdgeList.Count; j++) {
+                            _animationList[counterInstance].EdgeList[j].DrawEdge(ref gr);
+                        }
+                        //_animationList[counterInstance].TriangleList.ForEach(obj => obj.DrawTriangleAndCircumcircle(ref gr, labelVisibility, meshVisibility, circumcircleVisibility));
+                        for (int j = 0; j < _animationList[counterInstance].TriangleList.Count; j++) {
+                            _animationList[counterInstance].TriangleList[j].DrawTriangleAndCircumcircle(ref gr, labelVisibility, meshVisibility, circumcircleVisibility);
+                        }
                     }
                 } else {
-                    this._edgeList.ForEach(obj => obj.DrawEdge(ref gr));
-                    this._triangleList.ForEach(obj => obj.DrawTriangleAndCircumcircle(ref gr, labelVisibility, meshVisibility, circumcircleVisibility));
+                    //_edgeList.ForEach(obj => obj.DrawEdge(ref gr));
+                    for (int j = 0; j < _edgeList.Count; j++) {
+                        _edgeList[j].DrawEdge(ref gr);
+                    }
+                    //_triangleList.ForEach(obj => obj.DrawTriangleAndCircumcircle(ref gr, labelVisibility, meshVisibility, circumcircleVisibility));
+                    for (int j = 0; j < _triangleList.Count; j++) {
+                        _triangleList[j].DrawTriangleAndCircumcircle(ref gr, labelVisibility, meshVisibility, circumcircleVisibility);
+                    }
                 }
-                this._nodeList.ForEach(obj => obj.DrawNode(ref gr, labelVisibility));
+                //_nodeList.ForEach(obj => obj.DrawNode(ref gr, labelVisibility));
+                for (int j = 0; j < _nodeList.Count; j++) {
+                    _nodeList[j].DrawNode(ref gr, labelVisibility);
+                }
             }
+            #endregion
 
-            #region Node2D, Edge2D, Triangle2D, AnimationTracker
-            internal class Node2D {
+            #region Node, Edge, Triangle, AnimationTracker
+            internal class Node {
+                #region Private Class Variables
+                /// <summary>
+                /// ID узла
+                /// </summary>
                 private int _nodeID;
+                /// <summary>
+                /// Координата x
+                /// </summary>
                 private double _xCoordinate;
+                /// <summary>
+                /// Координата y
+                /// </summary>
                 private double _yCoordinate;
-
-                internal Node2D(int nodeID, double xCoordinate, double yCoordinate) {
-                    this._nodeID = nodeID;
-                    this._xCoordinate = xCoordinate;
-                    this._yCoordinate = yCoordinate;
+                #endregion
+#warning w3: rename region
+                #region ctor & set/get
+                /// <summary>
+                /// Конструктор
+                /// </summary>
+                /// <param name="nodeID">ID узла</param>
+                /// <param name="xCoordinate">Координата x</param>
+                /// <param name="yCoordinate">Координата y</param>
+                internal Node(int nodeID, double xCoordinate, double yCoordinate) {
+                    _nodeID = nodeID;
+                    _xCoordinate = xCoordinate;
+                    _yCoordinate = yCoordinate;
                 }
 
-                internal int NodeID { get { return this._nodeID; } }
-                internal double XCoordinate { get { return this._xCoordinate; } }
-                internal double YCoordinate { get { return this._yCoordinate; } }
+                /// <summary>
+                /// ID узла
+                /// </summary>
+                internal int NodeID { get { return _nodeID; } }
+                /// <summary>
+                /// Координата x
+                /// </summary>
+                internal double XCoordinate { get { return _xCoordinate; } }
+                /// <summary>
+                /// Координата y
+                /// </summary>
+                internal double YCoordinate { get { return _yCoordinate; } }
+                #endregion
 
-                internal bool Equals(Node2D other) {
-                    return this._xCoordinate == other.XCoordinate && this._yCoordinate == other.YCoordinate;
+                #region Methods
+                /// <summary>
+                /// Проверка двух узлов на равенство координат
+                /// </summary>
+                /// <param name="other">Другой узел</param>
+                /// <returns></returns>
+                internal bool Equals(Node other) {
+                    return _xCoordinate == other.XCoordinate && _yCoordinate == other.YCoordinate;
                 }
+                /// <summary>
+                /// Получение точки (координаты узла в формате PointF)
+                /// </summary>
+                /// <returns></returns>
                 internal PointF GetPoint() {
-                    return new PointF((float)this._xCoordinate, -(float)this._yCoordinate);
+                    return new PointF((float)_xCoordinate, -(float)_yCoordinate);
                 }
-                private PointF GetPointForEllipse() {
-                    return new PointF((float)this._xCoordinate - 2, -(float)this._yCoordinate - 2);
+                /// <summary>
+                /// Получение точки (координаты узла в формате PointF) со сдвигом относительно толщины
+                /// </summary>
+                /// <param name="halfThickness">Половина толщины точки</param>
+                /// <returns></returns>
+                private PointF GetPointForEllipse(int halfThickness) {
+                    return new PointF((float)_xCoordinate - halfThickness, -(float)_yCoordinate - halfThickness);
                 }
-                internal void DrawNode(ref Graphics graphics, bool labelVisibility) {
-                    graphics.FillEllipse(new Pen(Color.BlueViolet, 2).Brush, new RectangleF(GetPointForEllipse(), new SizeF(4, 4)));
-                    if (labelVisibility) {
-                        string str = $"{this._nodeID}({this._xCoordinate}; {this._yCoordinate})";
-                        SizeF strSize = graphics.MeasureString(str, new Font("Cambria", 6));
-                        graphics.DrawString(str, new Font("Cambria", 6), new Pen(Color.DarkBlue, 2).Brush, GetPointForEllipse().X + 3 - strSize.Width / 2, GetPointForEllipse().Y + 3 + strSize.Height / 2);
+                /// <summary>
+                /// Отрисовка узла в контроле PictureBox
+                /// </summary>
+                /// <param name="graphics">Экземпляр Graphics</param>
+                /// <param name="nodeInfoVisibility">Видимость информации об узле</param>
+                internal void DrawNode(ref Graphics graphics, bool nodeInfoVisibility) {
+                    int halfThickness = 2;
+                    graphics.FillEllipse(new Pen(Color.BlueViolet, halfThickness).Brush, new RectangleF(GetPointForEllipse(halfThickness), new SizeF(2 * halfThickness, 2 * halfThickness)));
+                    if (nodeInfoVisibility) {
+                        string nodeInfo = $"{_nodeID} ({_xCoordinate}; {_yCoordinate})";
+                        SizeF strSize = graphics.MeasureString(nodeInfo, new Font("Cambria", 6));
+                        graphics.DrawString(nodeInfo, new Font("Cambria", 6), new Pen(Color.DarkBlue, halfThickness).Brush,
+                                            GetPointForEllipse(halfThickness).X + 3 - strSize.Width / 2, GetPointForEllipse(halfThickness).Y + 3 + strSize.Height / 2);
                     }
                 }
+                #endregion
             }
 
-            internal class Edge2D {
+            internal class Edge {
+                #region Private Class Variables
+                /// <summary>
+                /// ID ребра
+                /// </summary>
                 private int _edgeID;
-                private Node2D _firstNode;
-                private Node2D _secondNode;
-
-                internal Edge2D(int edgeID, Node2D firstNode, Node2D secondNode) {
-                    this._edgeID = edgeID;
-                    this._firstNode = firstNode;
-                    this._secondNode = secondNode;
+                /// <summary>
+                /// Первый узел ребра
+                /// </summary>
+                private Node _firstNode;
+                /// <summary>
+                /// Второй узел ребра
+                /// </summary>
+                private Node _secondNode;
+                #endregion
+#warning w3: rename region
+                #region ctor & set/get
+                /// <summary>
+                /// Конструктор
+                /// </summary>
+                /// <param name="edgeID">ID ребра</param>
+                /// <param name="firstNode">Первый узел ребра</param>
+                /// <param name="secondNode">Второй узел ребра</param>
+                internal Edge(int edgeID, Node firstNode, Node secondNode) {
+                    _edgeID = edgeID;
+                    _firstNode = firstNode;
+                    _secondNode = secondNode;
                 }
 
-                internal int EdgeID { get { return this._edgeID; } }
-                internal Node2D FirstNode { get { return this._firstNode; } }
-                internal Node2D SecondNode { get { return this._secondNode; } }
+                /// <summary>
+                /// ID ребра
+                /// </summary>
+                internal int EdgeID { get { return _edgeID; } }
+                /// <summary>
+                /// Первый узел ребра
+                /// </summary>
+                internal Node FirstNode { get { return _firstNode; } }
+                /// <summary>
+                /// Второй узел ребра
+                /// </summary>
+                internal Node SecondNode { get { return _secondNode; } }
+                #endregion
 
-                internal bool Equals(Edge2D other) {
-                    return this._firstNode.Equals(other.FirstNode) && this._secondNode.Equals(other.SecondNode);
+                #region Methods
+                /// <summary>
+                /// Проверка двух ребер на равенство, сравнивая соответствующие узлы
+                /// </summary>
+                /// <param name="other">Другое ребро</param>
+                /// <returns></returns>
+                internal bool Equals(Edge other) {
+                    return _firstNode.Equals(other.FirstNode) && _secondNode.Equals(other.SecondNode);
                 }
-                internal bool CommutativeEquals(Edge2D other) {
-                    return (this._firstNode.Equals(other.FirstNode) && this._secondNode.Equals(other.SecondNode)) ||
-                        (this._firstNode.Equals(other.SecondNode) && this._secondNode.Equals(other.FirstNode));
+                /// <summary>
+                /// Проверка двух ребер на равенство, сравнивая узлы
+                /// </summary>
+                /// <param name="other">Другое ребро</param>
+                /// <returns></returns>
+                internal bool CommutativeEquals(Edge other) {
+                    return (_firstNode.Equals(other.FirstNode) && _secondNode.Equals(other.SecondNode)) ||
+                           (_firstNode.Equals(other.SecondNode) && _secondNode.Equals(other.FirstNode));
                 }
+                /// <summary>
+                /// Отрисовка ребра в контроле PictureBox
+                /// </summary>
+                /// <param name="graphics">Экземпляр Graphics</param>
                 internal void DrawEdge(ref Graphics graphics) {
-                    graphics.DrawLine(new Pen(Color.DarkOrange, 1), this._firstNode.GetPoint(), this._secondNode.GetPoint());
+                    graphics.DrawLine(new Pen(Color.DarkOrange, 1), _firstNode.GetPoint(), _secondNode.GetPoint());
                 }
+                #endregion
             }
 
-            internal class Triangle2D {
+            internal class Triangle {
+                #region Private Class Variables
+                /// <summary>
+                /// ID треугольника
+                /// </summary>
                 private int _triangleID;
-                private Node2D _firstNode;
-                private Node2D _secondNode;
-                private Node2D _thirdNode;
-                private Node2D _middleNode;
+                /// <summary>
+                /// Первый узел треугольника
+                /// </summary>
+                private Node _firstNode;
+                /// <summary>
+                /// Второй узел треугольника
+                /// </summary>
+                private Node _secondNode;
+                /// <summary>
+                /// Третий узел треугольника
+                /// </summary>
+                private Node _thirdNode;
+                /// <summary>
+                /// Геометрический центр треугольника
+                /// </summary>
+                private Node _geometricCenter;
+                /// <summary>
+                /// Коэффициент растяжения для отрисовки внутреннего треугольника
+                /// </summary>
                 private readonly double _scalingCoeff = 0.6;
-                private Node2D _circleCenter;
-                private double _circleRadius;
-                private Node2D _ellipseEdge;
+                /// <summary>
+                /// Радиус описанной окружности
+                /// </summary>
+                private double _circumcircleRadius;
+                /// <summary>
+                /// Центр описанной окружности
+                /// </summary>
+                private Node _circumcircleCenter = null!;
+                /// <summary>
+                /// Вспомогательный узел для отрисовки описанной окружности
+                /// </summary>
+                private Node _nodeForEllipse = null!;
+                #endregion
 
-                internal Triangle2D(int triangleID, Node2D firstNode, Node2D secondNode, Node2D thirdNode) {
-                    this._triangleID = triangleID;
-                    this._firstNode = firstNode;
-                    this._secondNode = secondNode;
-                    this._thirdNode = thirdNode;
-                    this._middleNode = new Node2D(-1, (firstNode.XCoordinate + secondNode.XCoordinate + thirdNode.XCoordinate) / 3,
-                                                  (firstNode.YCoordinate + secondNode.YCoordinate + thirdNode.YCoordinate) / 3);
-                    SetIncircle();
+#warning w3: rename region
+                #region ctor & set/get
+                /// <summary>
+                /// Конструктор
+                /// </summary>
+                /// <param name="triangleID">ID треугольника</param>
+                /// <param name="firstNode">Первый узел треугольника</param>
+                /// <param name="secondNode">Второй узел треугольника</param>
+                /// <param name="thirdNode">Третий узел треугольника</param>
+                internal Triangle(int triangleID, Node firstNode, Node secondNode, Node thirdNode) {
+                    _triangleID = triangleID;
+                    _firstNode = firstNode;
+                    _secondNode = secondNode;
+                    _thirdNode = thirdNode;
+                    _geometricCenter = new Node(-1, (firstNode.XCoordinate + secondNode.XCoordinate + thirdNode.XCoordinate) / 3,
+                                                    (firstNode.YCoordinate + secondNode.YCoordinate + thirdNode.YCoordinate) / 3);
+                    DefineCircumcircle();
                 }
 
-                internal int TriangleID { get { return this._triangleID; } }
-                internal Node2D FirstNode { get { return this._firstNode; } }
-                internal Node2D SecondNode { get { return this._secondNode; } }
-                internal Node2D ThirdNode { get { return this._thirdNode; } }
-                internal Node2D MiddleNode { get { return this._middleNode; } }
+                /// <summary>
+                /// ID треугольника
+                /// </summary>
+                internal int TriangleID { get { return _triangleID; } }
+                /// <summary>
+                /// Первый узел треугольника
+                /// </summary>
+                internal Node FirstNode { get { return _firstNode; } }
+                /// <summary>
+                /// Второй узел треугольника
+                /// </summary>
+                internal Node SecondNode { get { return _secondNode; } }
+                /// <summary>
+                /// Третий узел треугольника
+                /// </summary>
+                internal Node ThirdNode { get { return _thirdNode; } }
+                /// <summary>
+                /// Геометрический центр треугольника
+                /// </summary>
+                internal Node GeometricCenter { get { return _geometricCenter; } }
+                #endregion
 
-                private PointF GetFirstPoint {
-                    get {
-                        return new PointF((float)(this._middleNode.GetPoint().X * (1 - this._scalingCoeff) + this._firstNode.GetPoint().X * this._scalingCoeff),
-                                    (float)(this._middleNode.GetPoint().Y * (1 - this._scalingCoeff) + this._firstNode.GetPoint().Y * this._scalingCoeff));
-                    }
+                #region Methods
+                /// <summary>
+                /// Получение первой точки (координаты первого узла в формате PointF) со сдвигом относительно коэффициента растяжения _scalingCoeff
+                /// </summary>
+                /// <returns></returns>
+                private PointF GetFirstPoint() {
+                    return new PointF((float)(_geometricCenter.GetPoint().X * (1 - _scalingCoeff) + _firstNode.GetPoint().X * _scalingCoeff),
+                                      (float)(_geometricCenter.GetPoint().Y * (1 - _scalingCoeff) + _firstNode.GetPoint().Y * _scalingCoeff));
                 }
-                private PointF GetSecondPoint {
-                    get {
-                        return new PointF((float)(this._middleNode.GetPoint().X * (1 - this._scalingCoeff) + this._secondNode.GetPoint().X * this._scalingCoeff),
-                                    (float)(this._middleNode.GetPoint().Y * (1 - this._scalingCoeff) + this._secondNode.GetPoint().Y * this._scalingCoeff));
-                    }
+                /// <summary>
+                /// Получение второй точки (координаты второго узла в формате PointF) со сдвигом относительно коэффициента растяжения _scalingCoeff
+                /// </summary>
+                /// <returns></returns>
+                private PointF GetSecondPoint() {
+                    return new PointF((float)(_geometricCenter.GetPoint().X * (1 - _scalingCoeff) + _secondNode.GetPoint().X * _scalingCoeff),
+                                      (float)(_geometricCenter.GetPoint().Y * (1 - _scalingCoeff) + _secondNode.GetPoint().Y * _scalingCoeff));
                 }
-                private PointF GetThirdPoint {
-                    get {
-                        return new PointF((float)(this._middleNode.GetPoint().X * (1 - this._scalingCoeff) + this._thirdNode.GetPoint().X * this._scalingCoeff),
-                                    (float)(this._middleNode.GetPoint().Y * (1 - this._scalingCoeff) + this._thirdNode.GetPoint().Y * this._scalingCoeff));
-                    }
+                /// <summary>
+                /// Получение третьей точки (координаты третьего узла в формате PointF) со сдвигом относительно коэффициента растяжения _scalingCoeff
+                /// </summary>
+                /// <returns></returns>
+                private PointF GetThirdPoint() {
+                    return new PointF((float)(_geometricCenter.GetPoint().X * (1 - _scalingCoeff) + _thirdNode.GetPoint().X * _scalingCoeff),
+                                      (float)(_geometricCenter.GetPoint().Y * (1 - _scalingCoeff) + _thirdNode.GetPoint().Y * _scalingCoeff));
                 }
+                /// <summary>
+                /// Определение элементов для описанной окружности (нахождение центра, радиуса и вспомогательного узла _nodeForEllipse)
+                /// </summary>
+                private void DefineCircumcircle() {
+                    double dA = _firstNode.XCoordinate * _firstNode.XCoordinate + _firstNode.YCoordinate * _firstNode.YCoordinate;
+                    double dB = _secondNode.XCoordinate * _secondNode.XCoordinate + _secondNode.YCoordinate * _secondNode.YCoordinate;
+                    double dC = _thirdNode.XCoordinate * _thirdNode.XCoordinate + _thirdNode.YCoordinate * _thirdNode.YCoordinate;
 
-                private void SetIncircle() {
-                    double dA = this._firstNode.XCoordinate * this._firstNode.XCoordinate + this._firstNode.YCoordinate * this._firstNode.YCoordinate;
-                    double dB = this._secondNode.XCoordinate * this._secondNode.XCoordinate + this._secondNode.YCoordinate * this._secondNode.YCoordinate;
-                    double dC = this._thirdNode.XCoordinate * this._thirdNode.XCoordinate + this._thirdNode.YCoordinate * this._thirdNode.YCoordinate;
+                    double aux1 = dA * (_thirdNode.YCoordinate - _secondNode.YCoordinate) + dB * (_firstNode.YCoordinate - _thirdNode.YCoordinate) +
+                                  dC * (_secondNode.YCoordinate - _firstNode.YCoordinate);
 
-                    double aux1 = dA * (this._thirdNode.YCoordinate - this._secondNode.YCoordinate) + dB * (this._firstNode.YCoordinate - this._thirdNode.YCoordinate) +
-                                    dC * (this._secondNode.YCoordinate - this._firstNode.YCoordinate);
+                    double aux2 = -(dA * (_thirdNode.XCoordinate - _secondNode.XCoordinate) + dB * (_firstNode.XCoordinate - _thirdNode.XCoordinate) +
+                                  dC * (_secondNode.XCoordinate - _firstNode.XCoordinate));
 
-                    double aux2 = -(dA * (this._thirdNode.XCoordinate - this._secondNode.XCoordinate) + dB * (this._firstNode.XCoordinate - this._thirdNode.XCoordinate) +
-                                    dC * (this._secondNode.XCoordinate - this._firstNode.XCoordinate));
+                    double div = 2 * (_firstNode.XCoordinate * (_thirdNode.YCoordinate - _secondNode.YCoordinate) + _secondNode.XCoordinate *
+                                 (_firstNode.YCoordinate - _thirdNode.YCoordinate) + _thirdNode.XCoordinate * (_secondNode.YCoordinate - _firstNode.YCoordinate));
 
-                    double div = 2 * (this._firstNode.XCoordinate * (this._thirdNode.YCoordinate - this._secondNode.YCoordinate) + this._secondNode.XCoordinate *
-                                    (this._firstNode.YCoordinate - this._thirdNode.YCoordinate) + this._thirdNode.XCoordinate * (this._secondNode.YCoordinate - this._firstNode.YCoordinate));
+                    double xCoord = aux1 / div;
+                    double yCoord = aux2 / div;
 
-                    double centerXCoord = aux1 / div;
-                    double centerYCoord = aux2 / div;
-
-                    this._circleCenter = new Node2D(-1, centerXCoord, centerYCoord);
-                    this._circleRadius = Math.Sqrt((centerXCoord - this._firstNode.XCoordinate) * (centerXCoord - this._firstNode.XCoordinate) +
-                                                   (centerYCoord - this._firstNode.YCoordinate) * (centerYCoord - this._firstNode.YCoordinate));
-                    this._ellipseEdge = new Node2D(-1, centerXCoord - this._circleRadius, centerYCoord + this._circleRadius);
+                    _circumcircleCenter = new Node(-1, xCoord, yCoord);
+                    _circumcircleRadius = Math.Sqrt((xCoord - _firstNode.XCoordinate) * (xCoord - _firstNode.XCoordinate) + (yCoord - _firstNode.YCoordinate) * (yCoord - _firstNode.YCoordinate));
+                    _nodeForEllipse = new Node(-1, xCoord - _circumcircleRadius, yCoord + _circumcircleRadius);
                 }
-                internal void DrawTriangle(ref Graphics graphics, bool labelVisibility, bool meshVisibility) {
-                    if (meshVisibility) {
-                        PointF[] curvePoints = new PointF[] { this.GetFirstPoint, this.GetSecondPoint, this.GetThirdPoint };
+                /// <summary>
+                /// Отрисовка треугольника в контроле PictureBox
+                /// </summary>
+                /// <param name="graphics">Экземпляр Graphics</param>
+                /// <param name="triangleIDVisibility">Видимость ID треугольника</param>
+                /// <param name="innerTriangleVisibility">Видимость внутреннего треугольника</param>
+                internal void DrawTriangle(ref Graphics graphics, bool triangleIDVisibility, bool innerTriangleVisibility) {
+                    if (innerTriangleVisibility) {
+                        PointF[] curvePoints = new PointF[] { GetFirstPoint(), GetSecondPoint(), GetThirdPoint() };
                         graphics.FillPolygon(new Pen(Color.LightGreen, 1).Brush, curvePoints);
-                        if (labelVisibility) {
-                            graphics.DrawString(this._triangleID.ToString(), new Font("Cambria", 6), new Pen(Color.DeepPink, 2).Brush, this._middleNode.GetPoint());
+                        if (triangleIDVisibility) {
+                            graphics.DrawString(_triangleID.ToString(), new Font("Cambria", 6), new Pen(Color.DeepPink, 2).Brush, _geometricCenter.GetPoint());
                         }
                     }
                 }
-                internal void DrawTriangleAndCircumcircle(ref Graphics graphics, bool labelVisibility, bool meshVisibility, bool circumcircleVisibility) {
-                    Pen trianglePen = new Pen(Color.LightGreen, 1);
-                    if (meshVisibility) {
-                        PointF[] curvePoints = new PointF[] { this.GetFirstPoint, this.GetSecondPoint, this.GetThirdPoint };
-                        graphics.FillPolygon(trianglePen.Brush, curvePoints);
-                        if (labelVisibility) {
-                            graphics.DrawString(this._triangleID.ToString(), new Font("Cambria", 6), new Pen(Color.DeepPink, 2).Brush, this._middleNode.GetPoint());
-                        }
-                    }
+                /// <summary>
+                /// Отрисовка треугольника и описанной окружности в контроле PictureBox
+                /// </summary>
+                /// <param name="graphics">Экземпляр Graphics</param>
+                /// <param name="triangleIDVisibility">Видимость ID треугольника</param>
+                /// <param name="innerTriangleVisibility">Видимость внутреннего треугольника</param>
+                /// <param name="circumcircleVisibility">Видимость описанной окружности</param>
+                internal void DrawTriangleAndCircumcircle(ref Graphics graphics, bool triangleIDVisibility, bool innerTriangleVisibility, bool circumcircleVisibility) {
+                    DrawTriangle(ref graphics, triangleIDVisibility, innerTriangleVisibility);
                     if (circumcircleVisibility) {
-                        graphics.DrawEllipse(trianglePen, this._ellipseEdge.GetPoint().X, this._ellipseEdge.GetPoint().Y, (float)this._circleRadius * 2, (float)this._circleRadius * 2);
+                        graphics.DrawEllipse(new Pen(Color.LightGreen, 1), _nodeForEllipse.GetPoint().X, _nodeForEllipse.GetPoint().Y, 
+                                             (float)_circumcircleRadius * 2, (float)_circumcircleRadius * 2);
                     }
                 }
+                #endregion
             }
 
-            internal class AnimationTracker {
-                private List<Edge2D> _edgeList;
-                private List<Triangle2D> _triangleList;
+            internal class TweenAnimation {
+                #region Private Class Variables
+                /// <summary>
+                /// Список ребер
+                /// </summary>
+                private List<Edge> _edgeList = null!;
+                /// <summary>
+                /// Список треугольников
+                /// </summary>
+                private List<Triangle> _triangleList = null!;
+                #endregion
 
-                internal List<Edge2D> EdgeList {
-                    get { return this._edgeList; }
-                    set { this._edgeList = value; }
+#warning w3: rename region
+                #region set/get
+                /// <summary>
+                /// Список ребер
+                /// </summary>
+                internal List<Edge> EdgeList {
+                    get { return _edgeList; }
+                    set { _edgeList = value; }
                 }
-                internal List<Triangle2D> TriangleList {
-                    get { return this._triangleList; }
-                    set { this._triangleList = value; }
+                /// <summary>
+                /// Список треугольников
+                /// </summary>
+                internal List<Triangle> TriangleList {
+                    get { return _triangleList; }
+                    set { _triangleList = value; }
                 }
+                #endregion
             }
             #endregion
         }

@@ -2,26 +2,26 @@
     internal class Triangulation {
 
         #region Greedy Triangulation, Delaunay Triangulation Mesh Refinement functions
-        internal void GreedyTriangulationStart(List<MainForm.PlanarObjectStore.Node2D> inputNodeList, ref List<MainForm.PlanarObjectStore.Edge2D> outputEdgeList,
-                        ref List<MainForm.PlanarObjectStore.AnimationTracker> outputTrackerList) {
+        internal void GreedyTriangulationStart(List<MainForm.PlanarObjectStore.Node> inputNodeList, ref List<MainForm.PlanarObjectStore.Edge> outputEdgeList,
+                        ref List<MainForm.PlanarObjectStore.TweenAnimation> outputTrackerList) {
 
             List<MeshStore.Node2DStore> nodeList = new List<MeshStore.Node2DStore>();
             int index = 0;
-            foreach (MainForm.PlanarObjectStore.Node2D node in inputNodeList) {
+            foreach (MainForm.PlanarObjectStore.Node node in inputNodeList) {
                 nodeList.Add(new MeshStore.Node2DStore(index, node.XCoordinate, node.YCoordinate, node));
                 index++;
             }
             MeshStore meshStoreInstance = new MeshStore(nodeList, ref outputEdgeList, ref outputTrackerList);
         }
 
-        internal void DelaunayTriangulationStart(List<MainForm.PlanarObjectStore.Node2D> inputNodeList, ref List<MainForm.PlanarObjectStore.Edge2D> outputEdgeList,
-                        ref List<MainForm.PlanarObjectStore.Triangle2D> outputTriangleList, ref List<MainForm.PlanarObjectStore.AnimationTracker> outputTrackerList,
+        internal void DelaunayTriangulationStart(List<MainForm.PlanarObjectStore.Node> inputNodeList, ref List<MainForm.PlanarObjectStore.Edge> outputEdgeList,
+                        ref List<MainForm.PlanarObjectStore.Triangle> outputTriangleList, ref List<MainForm.PlanarObjectStore.TweenAnimation> outputTrackerList,
                         ref List<MeshStore.Node2DStore> nodeStoreList, ref List<MeshStore.Edge2DStore> edgeStoreList, ref List<MeshStore.Triangle2DStore> triangleStoreList) {
 
-            List<MainForm.PlanarObjectStore.Node2D> sortedInputNodeList = inputNodeList.OrderBy(obj => obj.XCoordinate).ThenBy(obj => obj.YCoordinate).ToList();
+            List<MainForm.PlanarObjectStore.Node> sortedInputNodeList = inputNodeList.OrderBy(obj => obj.XCoordinate).ThenBy(obj => obj.YCoordinate).ToList();
             List<MeshStore.Node2DStore> nodeList = new List<MeshStore.Node2DStore>();
             int index = 0;
-            foreach (MainForm.PlanarObjectStore.Node2D node in sortedInputNodeList) {
+            foreach (MainForm.PlanarObjectStore.Node node in sortedInputNodeList) {
                 nodeList.Add(new MeshStore.Node2DStore(index, node.XCoordinate, node.YCoordinate, node));
                 index++;
             }
@@ -29,9 +29,9 @@
                                                         ref nodeStoreList, ref edgeStoreList, ref triangleStoreList);
         }
 
-        internal void MeshRefinementStart(ref List<MainForm.PlanarObjectStore.Node2D> outputNodeList, ref List<MainForm.PlanarObjectStore.Edge2D> outputEdgeList,
-                        ref List<MainForm.PlanarObjectStore.Triangle2D> outputTriangleList, ref List<MainForm.PlanarObjectStore.AnimationTracker> outputTrackerList,
-                        MainForm.PlanarObjectStore.AnimationTracker tempTracker, int decimalPlaces, int meshRefinementCoeff, List<MeshStore.Node2DStore> nodeStoreList,
+        internal void MeshRefinementStart(ref List<MainForm.PlanarObjectStore.Node> outputNodeList, ref List<MainForm.PlanarObjectStore.Edge> outputEdgeList,
+                        ref List<MainForm.PlanarObjectStore.Triangle> outputTriangleList, ref List<MainForm.PlanarObjectStore.TweenAnimation> outputTrackerList,
+                        MainForm.PlanarObjectStore.TweenAnimation tempTracker, int decimalPlaces, int meshRefinementCoeff, List<MeshStore.Node2DStore> nodeStoreList,
                         List<MeshStore.Edge2DStore> edgeStoreList, List<MeshStore.Triangle2DStore> triangleStoreList) {
 
             MeshStore meshStoreInstance = new MeshStore(ref outputNodeList, ref outputEdgeList, ref outputTriangleList, ref outputTrackerList,
@@ -41,10 +41,10 @@
 
 
         internal class MeshStore {
-            private List<MainForm.PlanarObjectStore.Node2D> _outputNodeList = new List<MainForm.PlanarObjectStore.Node2D>();
-            private List<MainForm.PlanarObjectStore.Edge2D> _outputEdgeList = new List<MainForm.PlanarObjectStore.Edge2D>();
-            private List<MainForm.PlanarObjectStore.Triangle2D> _outputTriangleList = new List<MainForm.PlanarObjectStore.Triangle2D>();
-            private List<MainForm.PlanarObjectStore.AnimationTracker> _outputTrackerList = new List<MainForm.PlanarObjectStore.AnimationTracker>();
+            private List<MainForm.PlanarObjectStore.Node> _outputNodeList = new List<MainForm.PlanarObjectStore.Node>();
+            private List<MainForm.PlanarObjectStore.Edge> _outputEdgeList = new List<MainForm.PlanarObjectStore.Edge>();
+            private List<MainForm.PlanarObjectStore.Triangle> _outputTriangleList = new List<MainForm.PlanarObjectStore.Triangle>();
+            private List<MainForm.PlanarObjectStore.TweenAnimation> _outputTrackerList = new List<MainForm.PlanarObjectStore.TweenAnimation>();
 
             private List<Node2DStore> _nodeList = new List<Node2DStore>();
             private List<Edge2DStore> _edgeList = new List<Edge2DStore>();
@@ -55,11 +55,11 @@
 
 
             #region MeshStore constructors: Greedy Triangulation, Delaunay Triangulation, Mesh Refinement
-            internal MeshStore(List<Node2DStore> inputNodeList, ref List<MainForm.PlanarObjectStore.Edge2D> outputEdgeList,
-                        ref List<MainForm.PlanarObjectStore.AnimationTracker> outputTrackerList) {
+            internal MeshStore(List<Node2DStore> inputNodeList, ref List<MainForm.PlanarObjectStore.Edge> outputEdgeList,
+                        ref List<MainForm.PlanarObjectStore.TweenAnimation> outputTrackerList) {
 
-                outputEdgeList = new List<MainForm.PlanarObjectStore.Edge2D>();
-                outputTrackerList = new List<MainForm.PlanarObjectStore.AnimationTracker>();
+                outputEdgeList = new List<MainForm.PlanarObjectStore.Edge>();
+                outputTrackerList = new List<MainForm.PlanarObjectStore.TweenAnimation>();
                 this._nodeList = inputNodeList;
 
                 GreedyTriangulation();
@@ -68,13 +68,13 @@
                 outputTrackerList = this._outputTrackerList;
             }
 
-            internal MeshStore(List<Node2DStore> inputNodeList, ref List<MainForm.PlanarObjectStore.Edge2D> outputEdgeList,
-                        ref List<MainForm.PlanarObjectStore.Triangle2D> outputTriangleList, ref List<MainForm.PlanarObjectStore.AnimationTracker> outputTrackerList,
+            internal MeshStore(List<Node2DStore> inputNodeList, ref List<MainForm.PlanarObjectStore.Edge> outputEdgeList,
+                        ref List<MainForm.PlanarObjectStore.Triangle> outputTriangleList, ref List<MainForm.PlanarObjectStore.TweenAnimation> outputTrackerList,
                         ref List<Node2DStore> nodeStoreList, ref List<Edge2DStore> edgeStoreList, ref List<Triangle2DStore> triangleStoreList) {
 
-                outputEdgeList = new List<MainForm.PlanarObjectStore.Edge2D>();
-                outputTriangleList = new List<MainForm.PlanarObjectStore.Triangle2D>();
-                outputTrackerList = new List<MainForm.PlanarObjectStore.AnimationTracker>();
+                outputEdgeList = new List<MainForm.PlanarObjectStore.Edge>();
+                outputTriangleList = new List<MainForm.PlanarObjectStore.Triangle>();
+                outputTrackerList = new List<MainForm.PlanarObjectStore.TweenAnimation>();
 
                 this._nodeList = inputNodeList;
 
@@ -98,9 +98,9 @@
                 triangleStoreList = this._triangleList;
             }
 
-            internal MeshStore(ref List<MainForm.PlanarObjectStore.Node2D> outputNodeList, ref List<MainForm.PlanarObjectStore.Edge2D> outputEdgeList,
-                        ref List<MainForm.PlanarObjectStore.Triangle2D> outputTriangleList, ref List<MainForm.PlanarObjectStore.AnimationTracker> outputTrackerList,
-                        MainForm.PlanarObjectStore.AnimationTracker tempTracker, int decimalPlaces, int meshRefinementCoeff, List<Node2DStore> nodeStoreList_extracted,
+            internal MeshStore(ref List<MainForm.PlanarObjectStore.Node> outputNodeList, ref List<MainForm.PlanarObjectStore.Edge> outputEdgeList,
+                        ref List<MainForm.PlanarObjectStore.Triangle> outputTriangleList, ref List<MainForm.PlanarObjectStore.TweenAnimation> outputTrackerList,
+                        MainForm.PlanarObjectStore.TweenAnimation tempTracker, int decimalPlaces, int meshRefinementCoeff, List<Node2DStore> nodeStoreList_extracted,
                         List<Edge2DStore> edgeStoreList_extracted, List<Triangle2DStore> triangleStoreList_extracted) {
 
                 this._nodeList = nodeStoreList_extracted.ToList();
@@ -108,7 +108,7 @@
                 this._triangleList = triangleStoreList_extracted.ToList();
 
                 foreach (Node2DStore node in nodeStoreList_extracted) {
-                    this._outputNodeList.Add(new MainForm.PlanarObjectStore.Node2D(node.NodeID, node.XCoordinate, node.YCoordinate));
+                    this._outputNodeList.Add(new MainForm.PlanarObjectStore.Node(node.NodeID, node.XCoordinate, node.YCoordinate));
                 }
                 this._outputTrackerList.Add(tempTracker);
 
@@ -126,11 +126,11 @@
                 int edgeID = GetUniqueEdgeID();
                 Edge2DStore edge = new Edge2DStore(edgeID, node1, node2);
                 this._edgeList.Add(edge);
-                this._outputEdgeList.Add(new MainForm.PlanarObjectStore.Edge2D(edge.EdgeID, edge.FirstNode.GetNodeData, edge.SecondNode.GetNodeData));
+                this._outputEdgeList.Add(new MainForm.PlanarObjectStore.Edge(edge.EdgeID, edge.FirstNode.GetNodeData, edge.SecondNode.GetNodeData));
                 UpdateParticalTrackers();
             }
             private void RemoveFromOutputListForGreedyTriangulation(Edge2DStore edge) {
-                MainForm.PlanarObjectStore.Edge2D tempEdge = new MainForm.PlanarObjectStore.Edge2D(edge.EdgeID, edge.FirstNode.GetNodeData, edge.SecondNode.GetNodeData);
+                MainForm.PlanarObjectStore.Edge tempEdge = new MainForm.PlanarObjectStore.Edge(edge.EdgeID, edge.FirstNode.GetNodeData, edge.SecondNode.GetNodeData);
                 int removeIndex = this._outputEdgeList.FindIndex(obj => obj.CommutativeEquals(tempEdge));
                 if (removeIndex != -1) {
                     this._outputEdgeList.RemoveAt(removeIndex);
@@ -225,8 +225,8 @@
                 tuple.Item2.Add(firstNode);
 
                 for (int j = 1; j < meshRefinementCoeff; j++) {
-                    MainForm.PlanarObjectStore.Node2D intermediateNode =
-                        new MainForm.PlanarObjectStore.Node2D(nextNodeId, Math.Round(firstNode.XCoordinate + j * stepByXCoord, decimalPlaces, MidpointRounding.AwayFromZero),
+                    MainForm.PlanarObjectStore.Node intermediateNode =
+                        new MainForm.PlanarObjectStore.Node(nextNodeId, Math.Round(firstNode.XCoordinate + j * stepByXCoord, decimalPlaces, MidpointRounding.AwayFromZero),
                                                               Math.Round(firstNode.YCoordinate + j * stepByYCoord, decimalPlaces, MidpointRounding.AwayFromZero));
 
                     Node2DStore intermediateNodeStore = new Node2DStore(intermediateNode.NodeID, intermediateNode.XCoordinate, intermediateNode.YCoordinate, intermediateNode);
@@ -248,8 +248,8 @@
                 tempNodeList.Add(firstNode);
 
                 for (int j = 1; j < meshRefinementCoeff; j++) {
-                    MainForm.PlanarObjectStore.Node2D intermediateNode =
-                        new MainForm.PlanarObjectStore.Node2D(nextNodeId, Math.Round(firstNode.XCoordinate + j * stepByXCoord, decimalPlaces, MidpointRounding.AwayFromZero),
+                    MainForm.PlanarObjectStore.Node intermediateNode =
+                        new MainForm.PlanarObjectStore.Node(nextNodeId, Math.Round(firstNode.XCoordinate + j * stepByXCoord, decimalPlaces, MidpointRounding.AwayFromZero),
                                                               Math.Round(firstNode.YCoordinate + j * stepByYCoord, decimalPlaces, MidpointRounding.AwayFromZero));
 
                     Node2DStore intermediateNodeStore = new Node2DStore(intermediateNode.NodeID, intermediateNode.XCoordinate, intermediateNode.YCoordinate, intermediateNode);
@@ -270,7 +270,7 @@
 
                 if (this._edgeList.FindIndex(obj => obj.CommutativeEquals(edge)) == -1) {
                     this._edgeList.Add(edge);
-                    this._outputEdgeList.Add(new MainForm.PlanarObjectStore.Edge2D(edge.EdgeID, edge.FirstNode.GetNodeData, edge.SecondNode.GetNodeData));
+                    this._outputEdgeList.Add(new MainForm.PlanarObjectStore.Edge(edge.EdgeID, edge.FirstNode.GetNodeData, edge.SecondNode.GetNodeData));
                     UpdateAllTrackers();
                 }
             }
@@ -311,7 +311,7 @@
                     AddEdgeForMeshRefinement(prevList[0], curList[0]);
                     AddEdgeForMeshRefinement(curList[0], curList[1]);
                     AddEdgeForMeshRefinement(curList[1], prevList[0]);
-                    this._outputTriangleList.Add(new MainForm.PlanarObjectStore.Triangle2D(nextTriangleId, prevList[0].GetNodeData, curList[0].GetNodeData, curList[1].GetNodeData));
+                    this._outputTriangleList.Add(new MainForm.PlanarObjectStore.Triangle(nextTriangleId, prevList[0].GetNodeData, curList[0].GetNodeData, curList[1].GetNodeData));
                     UpdateAllTrackers();
                     nextTriangleId++;
 
@@ -322,11 +322,11 @@
                             AddEdgeForMeshRefinement(prevList[k], curList[k]);
                             AddEdgeForMeshRefinement(curList[k], curList[k + 1]);
                             AddEdgeForMeshRefinement(curList[k + 1], prevList[k]);
-                            this._outputTriangleList.Add(new MainForm.PlanarObjectStore.Triangle2D(nextTriangleId, prevList[k].GetNodeData, curList[k].GetNodeData, curList[k + 1].GetNodeData));
+                            this._outputTriangleList.Add(new MainForm.PlanarObjectStore.Triangle(nextTriangleId, prevList[k].GetNodeData, curList[k].GetNodeData, curList[k + 1].GetNodeData));
                             UpdateAllTrackers();
                             nextTriangleId++;
                             if (k < prevList.Count - 1) {
-                                this._outputTriangleList.Add(new MainForm.PlanarObjectStore.Triangle2D(nextTriangleId, prevList[k].GetNodeData, curList[k + 1].GetNodeData, prevList[k + 1].GetNodeData));
+                                this._outputTriangleList.Add(new MainForm.PlanarObjectStore.Triangle(nextTriangleId, prevList[k].GetNodeData, curList[k + 1].GetNodeData, prevList[k + 1].GetNodeData));
                                 UpdateAllTrackers();
                                 nextTriangleId++;
                             }
@@ -339,16 +339,16 @@
 
             #region MeshStore methods: "Divide And Conquer" Delaunay Triangulation
             private void UpdateParticalTrackers() {
-                MainForm.PlanarObjectStore.AnimationTracker tempTracker = new MainForm.PlanarObjectStore.AnimationTracker();
-                tempTracker.EdgeList = new List<MainForm.PlanarObjectStore.Edge2D>();
+                MainForm.PlanarObjectStore.TweenAnimation tempTracker = new MainForm.PlanarObjectStore.TweenAnimation();
+                tempTracker.EdgeList = new List<MainForm.PlanarObjectStore.Edge>();
                 tempTracker.EdgeList.AddRange(this._outputEdgeList);
                 this._outputTrackerList.Add(tempTracker);
             }
             private void UpdateAllTrackers() {
-                MainForm.PlanarObjectStore.AnimationTracker tempTracker = new MainForm.PlanarObjectStore.AnimationTracker();
-                tempTracker.EdgeList = new List<MainForm.PlanarObjectStore.Edge2D>();
+                MainForm.PlanarObjectStore.TweenAnimation tempTracker = new MainForm.PlanarObjectStore.TweenAnimation();
+                tempTracker.EdgeList = new List<MainForm.PlanarObjectStore.Edge>();
                 tempTracker.EdgeList.AddRange(this._outputEdgeList);
-                tempTracker.TriangleList = new List<MainForm.PlanarObjectStore.Triangle2D>();
+                tempTracker.TriangleList = new List<MainForm.PlanarObjectStore.Triangle>();
                 tempTracker.TriangleList.AddRange(this._outputTriangleList);
                 this._outputTrackerList.Add(tempTracker);
             }
@@ -373,17 +373,17 @@
                 return triangleID;
             }
             private void AddToOutputList(Edge2DStore edge, Triangle2DStore triangle) {
-                MainForm.PlanarObjectStore.Edge2D tempEdge = new MainForm.PlanarObjectStore.Edge2D(edge.EdgeID, edge.FirstNode.GetNodeData, edge.SecondNode.GetNodeData);
+                MainForm.PlanarObjectStore.Edge tempEdge = new MainForm.PlanarObjectStore.Edge(edge.EdgeID, edge.FirstNode.GetNodeData, edge.SecondNode.GetNodeData);
                 this._outputEdgeList.Add(tempEdge);
                 if (triangle != null) {
-                    MainForm.PlanarObjectStore.Triangle2D tempTriangle =
-                        new MainForm.PlanarObjectStore.Triangle2D(triangle.TriangleID, triangle.FirstNode.GetNodeData, triangle.SecondNode.GetNodeData, triangle.ThirdNode.GetNodeData);
+                    MainForm.PlanarObjectStore.Triangle tempTriangle =
+                        new MainForm.PlanarObjectStore.Triangle(triangle.TriangleID, triangle.FirstNode.GetNodeData, triangle.SecondNode.GetNodeData, triangle.ThirdNode.GetNodeData);
                     this._outputTriangleList.Add(tempTriangle);
                 }
                 UpdateAllTrackers();
             }
             private void RemoveFromOutputList(Edge2DStore edge, int firstTriangleID, int secondTriangleID) {
-                MainForm.PlanarObjectStore.Edge2D tempEdge = new MainForm.PlanarObjectStore.Edge2D(edge.EdgeID, edge.FirstNode.GetNodeData, edge.SecondNode.GetNodeData);
+                MainForm.PlanarObjectStore.Edge tempEdge = new MainForm.PlanarObjectStore.Edge(edge.EdgeID, edge.FirstNode.GetNodeData, edge.SecondNode.GetNodeData);
                 int removeIndex = this._outputEdgeList.FindIndex(obj => obj.CommutativeEquals(tempEdge));
                 if (removeIndex != -1) {
                     this._outputEdgeList.RemoveAt(removeIndex);
@@ -586,10 +586,10 @@
                 private int _nodeID;
                 private double _xCoordinate;
                 private double _yCoordinate;
-                private MainForm.PlanarObjectStore.Node2D _nodeData;
+                private MainForm.PlanarObjectStore.Node _nodeData;
                 private List<Edge2DStore> _connectedEdgeList = new List<Edge2DStore>();
 
-                internal Node2DStore(int nodeID, double xCoordinate, double yCoordinate, MainForm.PlanarObjectStore.Node2D nodeDataAsNode2D) {
+                internal Node2DStore(int nodeID, double xCoordinate, double yCoordinate, MainForm.PlanarObjectStore.Node nodeDataAsNode2D) {
                     this._nodeID = nodeID;
                     this._xCoordinate = xCoordinate;
                     this._yCoordinate = yCoordinate;
@@ -599,7 +599,7 @@
                 internal int NodeID { get { return this._nodeID; } }
                 internal double XCoordinate { get { return this._xCoordinate; } }
                 internal double YCoordinate { get { return this._yCoordinate; } }
-                internal MainForm.PlanarObjectStore.Node2D GetNodeData { get { return this._nodeData; } }
+                internal MainForm.PlanarObjectStore.Node GetNodeData { get { return this._nodeData; } }
 
                 internal bool Equals(Node2DStore other) {
                     return this._xCoordinate == other.XCoordinate && this._yCoordinate == other.YCoordinate;
