@@ -12,6 +12,17 @@ namespace MastersThesis {
 
 #warning  To do: warnings handling, regrouping classes/methods, writing summaries and comments.
 
+            /* 
+             * ToDo: 
+             *      MainFormExtension.cs
+             *                          ExactSolution
+             *                          warnings "w3: rename region"
+             *                          
+            */
+
+
+
+
             /*
              
              
@@ -23,11 +34,11 @@ namespace MastersThesis {
                 #warning Set up a color scheme:
                     DrawNode(ref Graphics graphics, bool labelVisibility);
                     DrawEdge(ref Graphics graphics);
-                    DrawTriangle(ref Graphics graphics, bool labelVisibility, bool meshVisibility);
-                    DrawTriangleAndCircumcircle(ref Graphics graphics, bool labelVisibility, bool meshVisibility, bool circumcircleVisibility);
+                    DrawInnerTriangle(ref Graphics graphics, bool labelVisibility, bool meshVisibility);
+                    DrawCircumcircle(ref Graphics graphics, bool labelVisibility, bool meshVisibility, bool circumcircleVisibility);
 
                 #warning Rename some var:
-                    GetAngleBetween(Edge2DStore withEdge, Edge2DStore edge);
+                    GetAngleBetween(EdgeStore withEdge, EdgeStore edge);
             */
         }
     }

@@ -2,32 +2,32 @@
 
 namespace MastersThesis {
     partial class MainForm {
-
-        /*
-         * ToDo: рефакторинг 
-         *                  не обработано: 
-         *                              регион Global Variables в классе MainForm
-         *                              регион Methods          в классе PlanarObjectStore
-         *                              функция ExactSolution
-         * 
-         *                  обработка ворнингов "w3: rename region" в классе и подклассах PlanarObjectStore
-         */
-
-
         #region Global Variables
         /// <summary>
-        /// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// Cостояния приложения
         /// </summary>
-        private enum TriangulationType : int {
+        private enum ApplicationStateType : int {
+            /// <summary>
+            /// Генерация узлов
+            /// </summary>
             NodeGeneration = 0,
+            /// <summary>
+            /// Жадная триангуляция
+            /// </summary>
             GreedyTriangulation = 1,
+            /// <summary>
+            /// Триангуляция Делоне
+            /// </summary>
             DelaunayTriangulation = 2,
+            /// <summary>
+            /// Триангуляция методом измельчения
+            /// </summary>
             MeshRefinement = 3
         }
         /// <summary>
-        /// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// Текущиее состояние приложения
         /// </summary>
-        private TriangulationType _triangulationType = TriangulationType.NodeGeneration;
+        private ApplicationStateType _applicationState = ApplicationStateType.NodeGeneration;
         /// <summary>
         /// Размеры используемой области в pictureBox_mainPic
         /// </summary>
@@ -37,29 +37,46 @@ namespace MastersThesis {
         /// </summary>
         private PointF _canvasOrgin;
         /// <summary>
-        /// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// Счетчик для анимации
         /// </summary>
-        private int _counterInstance;
+        private int _animationCounter;
         /// <summary>
-        /// Коэффициент измельчения
+        /// Коэффициент измельчения q
         /// </summary>
-        private int _meshRefinementCoefficient = 3;
+        private int _meshRefinementCoeff = 3;
         /// <summary>
-        /// 
+        /// Количество знаков после запятой 
         /// </summary>
         private readonly int _decimalPlaces = 2;
+        /// <summary>
+        /// Интервал для таймера анимации (мс)
+        /// </summary>
         private readonly int _timerInterval = 1000;
-        private PlanarObjectStore _planarObjectStoreInstance;
-        private List<Node2DStore> _nodeStoreList;
-        private List<Edge2DStore> _edgeStoreList;
-        private List<Triangle2DStore> _triangleStoreList;
+        /// <summary>
+        /// Экземпляр PlanarObjectStore
+        /// </summary>
+        private PlanarObjectStore _planarObjectStore = null!;
+        /// <summary>
+        /// Список узлов (NodeStore)
+        /// </summary>
+        private List<NodeStore> _nodeStoreList = null!;
+        /// <summary>
+        /// Список ребер (EdgeStore)
+        /// </summary>
+        private List<EdgeStore> _edgeStoreList = null!;
+        /// <summary>
+        /// Список треугольников (TriangleStore)
+        /// </summary>
+        private List<TriangleStore> _triangleStoreList = null!;
         #endregion
 
+        #region Exact Solution
         private double ExactSolution(double x, double y) {
             return Math.Sin(x) * y + x * Math.Cos(y) + x + y;
         }
+        #endregion
 
-
+        #region Class PlanarObjectStore
         internal class PlanarObjectStore {
             #region Private Class Variables
             /// <summary>
@@ -123,92 +140,146 @@ namespace MastersThesis {
             #endregion
 
             #region Methods
-            internal void DrawPicture(ref Graphics graphics, bool labelVisibility) {
-                //Graphics gr = graphics;
-                //_nodeList.ForEach(obj => obj.DrawNode(ref gr, labelVisibility));
+            /// <summary>
+            /// Отрисовка узлов в контроле PictureBox
+            /// </summary>
+            /// <param name="graphics">Экземпляр Graphics</param>
+            /// <param name="nodeInfoVisibility">Отображение информации об узлах</param>
+            internal void DrawNodeList(ref Graphics graphics, bool nodeInfoVisibility) {
                 for (int j = 0; j < _nodeList.Count; j++) {
-                    _nodeList[j].DrawNode(ref graphics, labelVisibility);
+                    _nodeList[j].DrawNode(ref graphics, nodeInfoVisibility);
                 }
             }
-            internal void DrawPicture(ref Graphics graphics, bool labelVisibility, bool tweenAnimation, ref int counterInstance) {
-                Graphics gr = graphics;
-                if (tweenAnimation) {
-                    if (counterInstance >= 0 && _animationList.Count != 0) {
-                        //_animationList[counterInstance].EdgeList.ForEach(obj => obj.DrawEdge(ref gr));
-                        for (int j = 0; j < _animationList[counterInstance].EdgeList.Count; j++) {
-                            _animationList[counterInstance].EdgeList[j].DrawEdge(ref gr);
-                        }
-                    }
-                } else {
-                    //_edgeList.ForEach(obj => obj.DrawEdge(ref gr));
-                    for (int j = 0; j < _edgeList.Count; j++) {
-                        _edgeList[j].DrawEdge(ref gr);
-                    }
-                }
-                //_nodeList.ForEach(obj => obj.DrawNode(ref gr, labelVisibility));
-                for (int j = 0; j < _nodeList.Count; j++) {
-                    _nodeList[j].DrawNode(ref gr, labelVisibility);
+            /// <summary>
+            /// Отрисовка ребер в контроле PictureBox
+            /// </summary>
+            /// <param name="graphics">Экземпляр Graphics</param>
+            private void DrawEdgeList(ref Graphics graphics) {
+                for (int j = 0; j < _edgeList.Count; j++) {
+                    _edgeList[j].DrawEdge(ref graphics);
                 }
             }
-            internal void DrawPicture(ref Graphics graphics, bool labelVisibility, bool tweenAnimation, ref int counterInstance, bool meshVisibility) {
-                Graphics gr = graphics;
-                if (tweenAnimation) {
-                    if (counterInstance >= 0 && _animationList.Count != 0) {
-                        //_animationList[counterInstance].EdgeList.ForEach(obj => obj.DrawEdge(ref gr));
-                        for (int j = 0; j < _animationList[counterInstance].EdgeList.Count; j++) {
-                            _animationList[counterInstance].EdgeList[j].DrawEdge(ref gr);
-                        }
-                        //_animationList[counterInstance].TriangleList.ForEach(obj => obj.DrawTriangle(ref gr, labelVisibility, meshVisibility));
-                        for (int j = 0; j < _animationList[counterInstance].TriangleList.Count; j++) {
-                            _animationList[counterInstance].TriangleList[j].DrawTriangle(ref gr, labelVisibility, meshVisibility);
-                        }
-                    }
-                } else {
-                    //_edgeList.ForEach(obj => obj.DrawEdge(ref gr));
-                    for (int j = 0; j < _edgeList.Count; j++) {
-                        _edgeList[j].DrawEdge(ref gr);
-                    }
-                    //_triangleList.ForEach(obj => obj.DrawTriangle(ref gr, labelVisibility, meshVisibility));
-                    for (int j = 0; j < _triangleList.Count; j++) {
-                        _triangleList[j].DrawTriangle(ref gr, labelVisibility, meshVisibility);
-                    }
-                }
-                //_nodeList.ForEach(obj => obj.DrawNode(ref gr, labelVisibility));
-                for (int j = 0; j < _nodeList.Count; j++) {
-                    _nodeList[j].DrawNode(ref gr, labelVisibility);
+            /// <summary>
+            /// Анимированная отрисовка ребер в контроле PictureBox
+            /// </summary>
+            /// <param name="graphics">Экземпляр Graphics</param>
+            /// <param name="animationCounter">Счетчик для анимации</param>
+            private void DrawEdgeListWithAnimation(ref Graphics graphics, ref int animationCounter) {
+                for (int j = 0; j < _animationList[animationCounter].EdgeList.Count; j++) {
+                    _animationList[animationCounter].EdgeList[j].DrawEdge(ref graphics);
                 }
             }
-            internal void DrawPicture(ref Graphics graphics, bool labelVisibility, bool tweenAnimation, ref int counterInstance, bool meshVisibility, bool circumcircleVisibility) {
-                Graphics gr = graphics;
+            /// <summary>
+            /// Отрисовка внутренних треугольников в контроле PictureBox
+            /// </summary>
+            /// <param name="graphics">Экземпляр Graphics</param>
+            /// <param name="triangleIDVisibility">Отображение ID треугольников</param>
+            /// <param name="innerTriangleVisibility">Отображение внутренних треугольников</param>
+            private void DrawInnerTriangles(ref Graphics graphics, bool triangleIDVisibility, bool innerTriangleVisibility) {
+                for (int j = 0; j < _triangleList.Count; j++) {
+                    _triangleList[j].DrawInnerTriangle(ref graphics, triangleIDVisibility, innerTriangleVisibility);
+                }
+            }
+            /// <summary>
+            /// Анимированная отрисовка внутренних треугольников в контроле PictureBox
+            /// </summary>
+            /// <param name="graphics">Экземпляр Graphics</param>
+            /// <param name="animationCounter">Счетчик для анимации</param>
+            /// <param name="triangleIDVisibility">Отображение ID треугольников</param>
+            /// <param name="innerTriangleVisibility">Отображение внутренних треугольников</param>
+            private void DrawInnerTrianglesWithAnimation(ref Graphics graphics, ref int animationCounter, bool triangleIDVisibility, bool innerTriangleVisibility) {
+                for (int j = 0; j < _animationList[animationCounter].TriangleList.Count; j++) {
+                    _animationList[animationCounter].TriangleList[j].DrawInnerTriangle(ref graphics, triangleIDVisibility, innerTriangleVisibility);
+                }
+            }
+            /// <summary>
+            /// Отрисовка внутренних треугольников  и описанных окружностей в контроле PictureBox
+            /// </summary>
+            /// <param name="graphics">Экземпляр Graphics</param>
+            /// <param name="triangleIDVisibility">Отображение ID треугольников</param>
+            /// <param name="innerTriangleVisibility">Отображение внутренних треугольников</param>
+            /// <param name="circumcircleVisibility">Отображение описанных окружностей</param>
+            private void DrawInnerTrianglesAndCircumcircles(ref Graphics graphics, bool triangleIDVisibility, bool innerTriangleVisibility, bool circumcircleVisibility) {
+                for (int j = 0; j < _triangleList.Count; j++) {
+                    _triangleList[j].DrawInnerTriangle(ref graphics, triangleIDVisibility, innerTriangleVisibility);
+                    _triangleList[j].DrawCircumcircle(ref graphics, circumcircleVisibility);
+                }
+            }
+            /// <summary>
+            /// Анимированная отрисовка внутренних треугольников и описанных окружностей в контроле PictureBox
+            /// </summary>
+            /// <param name="graphics">Экземпляр Graphics</param>
+            /// <param name="animationCounter">Счетчик для анимации</param>
+            /// <param name="triangleIDVisibility">Отображение ID треугольников</param>
+            /// <param name="innerTriangleVisibility">Отображение внутренних треугольников</param>
+            /// <param name="circumcircleVisibility">Отображение описанных окружностей</param>
+            private void DrawInnerTrianglesAndCircumcirclesWithAnimation(ref Graphics graphics, ref int animationCounter, bool triangleIDVisibility, bool innerTriangleVisibility, bool circumcircleVisibility) {
+                for (int j = 0; j < _animationList[animationCounter].TriangleList.Count; j++) {
+                    _animationList[animationCounter].TriangleList[j].DrawInnerTriangle(ref graphics, triangleIDVisibility, innerTriangleVisibility);
+                    _animationList[animationCounter].TriangleList[j].DrawCircumcircle(ref graphics, circumcircleVisibility);
+                }
+            }
+            /// <summary>
+            /// Анимированная отрисовка триангуляции (без отображения треугольников и описанных окружностей) в контроле PictureBox
+            /// </summary>
+            /// <param name="graphics">Экземпляр Graphics</param>
+            /// <param name="nodeInfoVisibility">Отображение информации об узлах</param>
+            /// <param name="tweenAnimation">Отображение анимации</param>
+            /// <param name="animationCounter">Счетчик для анимации</param>
+            internal void DrawTriangulation(ref Graphics graphics, bool nodeInfoVisibility, bool tweenAnimation, ref int animationCounter) {
                 if (tweenAnimation) {
-                    if (counterInstance >= 0 && _animationList.Count != 0) {
-                        //_animationList[counterInstance].EdgeList.ForEach(obj => obj.DrawEdge(ref gr));
-                        for (int j = 0; j < _animationList[counterInstance].EdgeList.Count; j++) {
-                            _animationList[counterInstance].EdgeList[j].DrawEdge(ref gr);
-                        }
-                        //_animationList[counterInstance].TriangleList.ForEach(obj => obj.DrawTriangleAndCircumcircle(ref gr, labelVisibility, meshVisibility, circumcircleVisibility));
-                        for (int j = 0; j < _animationList[counterInstance].TriangleList.Count; j++) {
-                            _animationList[counterInstance].TriangleList[j].DrawTriangleAndCircumcircle(ref gr, labelVisibility, meshVisibility, circumcircleVisibility);
-                        }
+                    if (animationCounter >= 0 && _animationList.Count != 0) {
+                        DrawEdgeListWithAnimation(ref graphics, ref animationCounter);
                     }
                 } else {
-                    //_edgeList.ForEach(obj => obj.DrawEdge(ref gr));
-                    for (int j = 0; j < _edgeList.Count; j++) {
-                        _edgeList[j].DrawEdge(ref gr);
-                    }
-                    //_triangleList.ForEach(obj => obj.DrawTriangleAndCircumcircle(ref gr, labelVisibility, meshVisibility, circumcircleVisibility));
-                    for (int j = 0; j < _triangleList.Count; j++) {
-                        _triangleList[j].DrawTriangleAndCircumcircle(ref gr, labelVisibility, meshVisibility, circumcircleVisibility);
-                    }
+                    DrawEdgeList(ref graphics);
                 }
-                //_nodeList.ForEach(obj => obj.DrawNode(ref gr, labelVisibility));
-                for (int j = 0; j < _nodeList.Count; j++) {
-                    _nodeList[j].DrawNode(ref gr, labelVisibility);
+                DrawNodeList(ref graphics, nodeInfoVisibility);
+            }
+            /// <summary>
+            /// Анимированная отрисовка триангуляции (без отображения описанных окружностей) в контроле PictureBox
+            /// </summary>
+            /// <param name="graphics">Экземпляр Graphics</param>
+            /// <param name="labelVisibility">Отображение информации об узлах и треугольниках</param>
+            /// <param name="tweenAnimation">Отображение анимации</param>
+            /// <param name="animationCounter">Счетчик для анимации</param>
+            /// <param name="innerTriangleVisibility">Отображение внутренних треугольников</param>
+            internal void DrawTriangulation(ref Graphics graphics, bool labelVisibility, bool tweenAnimation, ref int animationCounter, bool innerTriangleVisibility) {
+                if (tweenAnimation) {
+                    if (animationCounter >= 0 && _animationList.Count != 0) {
+                        DrawEdgeListWithAnimation(ref graphics, ref animationCounter);
+                        DrawInnerTrianglesWithAnimation(ref graphics, ref animationCounter, labelVisibility, innerTriangleVisibility);
+                    }
+                } else {
+                    DrawEdgeList(ref graphics);
+                    DrawInnerTriangles(ref graphics, labelVisibility, innerTriangleVisibility);
                 }
+                DrawNodeList(ref graphics, labelVisibility);
+            }
+            /// <summary>
+            /// Анимированная отрисовка триангуляции в контроле PictureBox
+            /// </summary>
+            /// <param name="graphics">Экземпляр Graphics</param>
+            /// <param name="labelVisibility">Отображение информации об узлах и треугольниках</param>
+            /// <param name="tweenAnimation">Отображение анимации</param>
+            /// <param name="animationCounter">Счетчик для анимации</param>
+            /// <param name="innerTriangleVisibility">Отображение внутренних треугольников</param>
+            /// <param name="circumcircleVisibility">Отображение описанных окружностей</param>
+            internal void DrawTriangulation(ref Graphics graphics, bool labelVisibility, bool tweenAnimation, ref int animationCounter, bool innerTriangleVisibility, bool circumcircleVisibility) {
+                if (tweenAnimation) {
+                    if (animationCounter >= 0 && _animationList.Count != 0) {
+                        DrawEdgeListWithAnimation(ref graphics, ref animationCounter);
+                        DrawInnerTrianglesAndCircumcirclesWithAnimation(ref graphics, ref animationCounter, labelVisibility, innerTriangleVisibility, circumcircleVisibility);
+                    }
+                } else {
+                    DrawEdgeList(ref graphics);
+                    DrawInnerTrianglesAndCircumcircles(ref graphics, labelVisibility, innerTriangleVisibility, circumcircleVisibility);
+                }
+                DrawNodeList(ref graphics, labelVisibility);
             }
             #endregion
 
-            #region Node, Edge, Triangle, AnimationTracker
+            #region Base Classes: Node, Edge, Triangle, AnimationTracker
             internal class Node {
                 #region Private Class Variables
                 /// <summary>
@@ -280,7 +351,7 @@ namespace MastersThesis {
                 /// Отрисовка узла в контроле PictureBox
                 /// </summary>
                 /// <param name="graphics">Экземпляр Graphics</param>
-                /// <param name="nodeInfoVisibility">Видимость информации об узле</param>
+                /// <param name="nodeInfoVisibility">Отображение информации об узле</param>
                 internal void DrawNode(ref Graphics graphics, bool nodeInfoVisibility) {
                     int halfThickness = 2;
                     graphics.FillEllipse(new Pen(Color.BlueViolet, halfThickness).Brush, new RectangleF(GetPointForEllipse(halfThickness), new SizeF(2 * halfThickness, 2 * halfThickness)));
@@ -499,9 +570,9 @@ namespace MastersThesis {
                 /// Отрисовка треугольника в контроле PictureBox
                 /// </summary>
                 /// <param name="graphics">Экземпляр Graphics</param>
-                /// <param name="triangleIDVisibility">Видимость ID треугольника</param>
-                /// <param name="innerTriangleVisibility">Видимость внутреннего треугольника</param>
-                internal void DrawTriangle(ref Graphics graphics, bool triangleIDVisibility, bool innerTriangleVisibility) {
+                /// <param name="triangleIDVisibility">Отображение ID треугольника</param>
+                /// <param name="innerTriangleVisibility">Отображение внутреннего треугольника</param>
+                internal void DrawInnerTriangle(ref Graphics graphics, bool triangleIDVisibility, bool innerTriangleVisibility) {
                     if (innerTriangleVisibility) {
                         PointF[] curvePoints = new PointF[] { GetFirstPoint(), GetSecondPoint(), GetThirdPoint() };
                         graphics.FillPolygon(new Pen(Color.LightGreen, 1).Brush, curvePoints);
@@ -511,14 +582,11 @@ namespace MastersThesis {
                     }
                 }
                 /// <summary>
-                /// Отрисовка треугольника и описанной окружности в контроле PictureBox
+                /// Отрисовка описанной окружности в контроле PictureBox
                 /// </summary>
                 /// <param name="graphics">Экземпляр Graphics</param>
-                /// <param name="triangleIDVisibility">Видимость ID треугольника</param>
-                /// <param name="innerTriangleVisibility">Видимость внутреннего треугольника</param>
-                /// <param name="circumcircleVisibility">Видимость описанной окружности</param>
-                internal void DrawTriangleAndCircumcircle(ref Graphics graphics, bool triangleIDVisibility, bool innerTriangleVisibility, bool circumcircleVisibility) {
-                    DrawTriangle(ref graphics, triangleIDVisibility, innerTriangleVisibility);
+                /// <param name="circumcircleVisibility">Отображение описанной окружности</param>
+                internal void DrawCircumcircle(ref Graphics graphics, bool circumcircleVisibility) {
                     if (circumcircleVisibility) {
                         graphics.DrawEllipse(new Pen(Color.LightGreen, 1), _nodeForEllipse.GetPoint().X, _nodeForEllipse.GetPoint().Y, 
                                              (float)_circumcircleRadius * 2, (float)_circumcircleRadius * 2);
@@ -559,5 +627,6 @@ namespace MastersThesis {
             }
             #endregion
         }
+        #endregion
     }
 }

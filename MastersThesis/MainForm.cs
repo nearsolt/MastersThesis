@@ -6,7 +6,7 @@ namespace MastersThesis {
             InitializeComponent();
         }
         private void MainForm_Load(object sender, EventArgs e) {
-            this._planarObjectStoreInstance = new PlanarObjectStore();
+            this._planarObjectStore = new PlanarObjectStore();
             InitializeCanvasSize();
             GenerateRandomNodes();
         }
@@ -14,10 +14,10 @@ namespace MastersThesis {
             InitializeCanvasSize();
         }
         private void timer_animationTimer_Tick(object sender, EventArgs e) {
-            if (this._counterInstance == this._planarObjectStoreInstance.AnimationList.Count - 1) {
-                this._counterInstance = 0;
+            if (this._animationCounter == this._planarObjectStore.AnimationList.Count - 1) {
+                this._animationCounter = 0;
             } else {
-                this._counterInstance++;
+                this._animationCounter++;
             }
             this.pictureBox_mainPic.Refresh();
         }
@@ -26,19 +26,19 @@ namespace MastersThesis {
             gr.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
             gr.TranslateTransform(this._canvasOrgin.X, this._canvasOrgin.Y);
 
-            switch (this._triangulationType) {
-                case TriangulationType.NodeGeneration:
-                    this._planarObjectStoreInstance.DrawPicture(ref gr, this.checkBox_labelVisibility.Checked);
+            switch (this._applicationState) {
+                case ApplicationStateType.NodeGeneration:
+                    this._planarObjectStore.DrawNodeList(ref gr, this.checkBox_labelVisibility.Checked);
                     break;
-                case TriangulationType.GreedyTriangulation:
-                    this._planarObjectStoreInstance.DrawPicture(ref gr, this.checkBox_labelVisibility.Checked, this.checkBox_tweenAnimation.Checked, ref this._counterInstance);
+                case ApplicationStateType.GreedyTriangulation:
+                    this._planarObjectStore.DrawTriangulation(ref gr, this.checkBox_labelVisibility.Checked, this.checkBox_tweenAnimation.Checked, ref this._animationCounter);
                     break;
-                case TriangulationType.DelaunayTriangulation:
-                    this._planarObjectStoreInstance.DrawPicture(ref gr, this.checkBox_labelVisibility.Checked, this.checkBox_tweenAnimation.Checked, ref this._counterInstance,
+                case ApplicationStateType.DelaunayTriangulation:
+                    this._planarObjectStore.DrawTriangulation(ref gr, this.checkBox_labelVisibility.Checked, this.checkBox_tweenAnimation.Checked, ref this._animationCounter,
                                                                 this.checkBox_meshVisibility.Checked, this.checkBox_circumcircleVisibility.Checked);
                     break;
-                case TriangulationType.MeshRefinement:
-                    this._planarObjectStoreInstance.DrawPicture(ref gr, this.checkBox_labelVisibility.Checked, this.checkBox_tweenAnimation.Checked, ref this._counterInstance,
+                case ApplicationStateType.MeshRefinement:
+                    this._planarObjectStore.DrawTriangulation(ref gr, this.checkBox_labelVisibility.Checked, this.checkBox_tweenAnimation.Checked, ref this._animationCounter,
                                                                 this.checkBox_meshVisibility.Checked);
                     break;
             }
@@ -53,7 +53,7 @@ namespace MastersThesis {
         }
         private void checkBox_tweenAnimation_CheckedChanged(object sender, EventArgs e) {
             if (this.checkBox_tweenAnimation.Checked) {
-                this._counterInstance = 0;
+                this._animationCounter = 0;
                 this.timer_animationTimer.Interval = this._timerInterval;
                 this.timer_animationTimer.Enabled = true;
                 this.timer_animationTimer.Start();
@@ -108,14 +108,14 @@ namespace MastersThesis {
         /// Random-генерация узлов
         /// </summary>
         private void GenerateRandomNodes() {
-            this._triangulationType = TriangulationType.NodeGeneration;
+            this._applicationState = ApplicationStateType.NodeGeneration;
             int nodeCount = (int)this.numericUpDown_numberOfNodes.Value;
 
-            this._nodeStoreList = new List<Triangulation.MeshStore.Node2DStore>();
-            this._edgeStoreList = new List<Triangulation.MeshStore.Edge2DStore>();
-            this._triangleStoreList = new List<Triangulation.MeshStore.Triangle2DStore>();
+            this._nodeStoreList = new List<Triangulation.MeshStore.NodeStore>();
+            this._edgeStoreList = new List<Triangulation.MeshStore.EdgeStore>();
+            this._triangleStoreList = new List<Triangulation.MeshStore.TriangleStore>();
 
-            this._planarObjectStoreInstance = new PlanarObjectStore();
+            this._planarObjectStore = new PlanarObjectStore();
             List<PlanarObjectStore.Node> tempNodeList = new List<PlanarObjectStore.Node>();
 
             Random random = new Random();
@@ -145,75 +145,75 @@ namespace MastersThesis {
                     tempNodeList.Add(new PlanarObjectStore.Node(j, tmpXCoord, tmpYCoord));
                 }
             }
-            this._planarObjectStoreInstance.NodeList = tempNodeList;
+            this._planarObjectStore.NodeList = tempNodeList;
             this.pictureBox_mainPic.Refresh();
         }
         private void GreedyTriangulation() {
-            if (this._triangulationType == TriangulationType.MeshRefinement) {
+            if (this._applicationState == ApplicationStateType.MeshRefinement) {
                 MessageBox.Show("Perform node generation before Greedy triangulation.", "Information",
                     MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
                 return;
             }
-            this._triangulationType = TriangulationType.GreedyTriangulation;
-            this._counterInstance = 0;
-            this._planarObjectStoreInstance.EdgeList = new List<PlanarObjectStore.Edge>();
-            this._planarObjectStoreInstance.AnimationList = new List<PlanarObjectStore.TweenAnimation>();
+            this._applicationState = ApplicationStateType.GreedyTriangulation;
+            this._animationCounter = 0;
+            this._planarObjectStore.EdgeList = new List<PlanarObjectStore.Edge>();
+            this._planarObjectStore.AnimationList = new List<PlanarObjectStore.TweenAnimation>();
 
             List<PlanarObjectStore.Edge> tempEdgeList = new List<PlanarObjectStore.Edge>();
             List<PlanarObjectStore.TweenAnimation> tempTrackerList = new List<PlanarObjectStore.TweenAnimation>();
 
-            (new Triangulation()).GreedyTriangulationStart(this._planarObjectStoreInstance.NodeList, ref tempEdgeList, ref tempTrackerList);
+            (new Triangulation()).GreedyTriangulationStart(this._planarObjectStore.NodeList, ref tempEdgeList, ref tempTrackerList);
 
-            this._planarObjectStoreInstance.EdgeList = tempEdgeList;
-            this._planarObjectStoreInstance.AnimationList = tempTrackerList;
+            this._planarObjectStore.EdgeList = tempEdgeList;
+            this._planarObjectStore.AnimationList = tempTrackerList;
             this.pictureBox_mainPic.Refresh();
         }
         private void DelaunayTriangulation() {
-            if (this._triangulationType == TriangulationType.MeshRefinement) {
+            if (this._applicationState == ApplicationStateType.MeshRefinement) {
                 MessageBox.Show("Perform node generation before Delaunay triangulation.", "Information",
                     MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
                 return;
             }
-            this._triangulationType = TriangulationType.DelaunayTriangulation;
-            this._counterInstance = 0;
-            this._planarObjectStoreInstance.EdgeList = new List<PlanarObjectStore.Edge>();
-            this._planarObjectStoreInstance.AnimationList = new List<PlanarObjectStore.TweenAnimation>();
+            this._applicationState = ApplicationStateType.DelaunayTriangulation;
+            this._animationCounter = 0;
+            this._planarObjectStore.EdgeList = new List<PlanarObjectStore.Edge>();
+            this._planarObjectStore.AnimationList = new List<PlanarObjectStore.TweenAnimation>();
 
             List<PlanarObjectStore.Edge> tempEdgeList = new List<PlanarObjectStore.Edge>();
             List<PlanarObjectStore.Triangle> tempTriangleList = new List<PlanarObjectStore.Triangle>();
             List<PlanarObjectStore.TweenAnimation> tempTrackerList = new List<PlanarObjectStore.TweenAnimation>();
 
-            (new Triangulation()).DelaunayTriangulationStart(this._planarObjectStoreInstance.NodeList, ref tempEdgeList, ref tempTriangleList, ref tempTrackerList,
+            (new Triangulation()).DelaunayTriangulationStart(this._planarObjectStore.NodeList, ref tempEdgeList, ref tempTriangleList, ref tempTrackerList,
                                                              ref this._nodeStoreList, ref this._edgeStoreList, ref this._triangleStoreList);
 
-            this._planarObjectStoreInstance.EdgeList = tempEdgeList;
-            this._planarObjectStoreInstance.TriangleList = tempTriangleList;
-            this._planarObjectStoreInstance.AnimationList = tempTrackerList;
+            this._planarObjectStore.EdgeList = tempEdgeList;
+            this._planarObjectStore.TriangleList = tempTriangleList;
+            this._planarObjectStore.AnimationList = tempTrackerList;
             this.pictureBox_mainPic.Refresh();
         }
         private void MeshRefinement() {
-            if (this._triangulationType != TriangulationType.DelaunayTriangulation) {
+            if (this._applicationState != ApplicationStateType.DelaunayTriangulation) {
                 MessageBox.Show("Perform Delaunay triangulation before the mesh refinement method.", "Information",
                     MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
                 return;
             }
-            this._triangulationType = TriangulationType.MeshRefinement;
-            this._meshRefinementCoefficient = (int)this.numericUpDown_meshRefinementCoefficient.Value;
-            this._counterInstance = 0;
+            this._applicationState = ApplicationStateType.MeshRefinement;
+            this._meshRefinementCoeff = (int)this.numericUpDown_meshRefinementCoefficient.Value;
+            this._animationCounter = 0;
 
             List<PlanarObjectStore.Node> tempNodeList = new List<PlanarObjectStore.Node>();
             List<PlanarObjectStore.Edge> tempEdgeList = new List<PlanarObjectStore.Edge>();
             List<PlanarObjectStore.Triangle> tempTriangleList = new List<PlanarObjectStore.Triangle>();
             List<PlanarObjectStore.TweenAnimation> tempTrackerList = new List<PlanarObjectStore.TweenAnimation>();
-            PlanarObjectStore.TweenAnimation tempTracker = this._planarObjectStoreInstance.AnimationList.LastOrDefault();
+            PlanarObjectStore.TweenAnimation tempTracker = this._planarObjectStore.AnimationList.Last();
 
             (new Triangulation()).MeshRefinementStart(ref tempNodeList, ref tempEdgeList, ref tempTriangleList, ref tempTrackerList, tempTracker, this._decimalPlaces,
-                                                      this._meshRefinementCoefficient, this._nodeStoreList, this._edgeStoreList, this._triangleStoreList);
+                                                      this._meshRefinementCoeff, this._nodeStoreList, this._edgeStoreList, this._triangleStoreList);
 
-            this._planarObjectStoreInstance.NodeList = tempNodeList;
-            this._planarObjectStoreInstance.EdgeList = tempEdgeList;
-            this._planarObjectStoreInstance.TriangleList = tempTriangleList;
-            this._planarObjectStoreInstance.AnimationList = tempTrackerList;
+            this._planarObjectStore.NodeList = tempNodeList;
+            this._planarObjectStore.EdgeList = tempEdgeList;
+            this._planarObjectStore.TriangleList = tempTriangleList;
+            this._planarObjectStore.AnimationList = tempTrackerList;
             this.pictureBox_mainPic.Refresh();
         }
 
@@ -223,18 +223,18 @@ namespace MastersThesis {
         #region Test Buttons & Debug
 #warning To do: remove from the final version with control (button_test visible = false)
         private void button_test_Click(object sender, EventArgs e) {
-            //MessageBox.Show($"Count temp list {nameof(this._planarObjectStoreInstance.NodeList)}: {this._planarObjectStoreInstance.NodeList.Count}\n" +
-            //                $"Count temp list {nameof(this._planarObjectStoreInstance.EdgeList)}: {this._planarObjectStoreInstance.EdgeList.Count}\n" +
-            //                $"Count temp list {nameof(this._planarObjectStoreInstance.TriangleList)}: {this._planarObjectStoreInstance.TriangleList.Count}\n" +
-            //                $"Count temp list {nameof(this._planarObjectStoreInstance.AnimationList)}: {this._planarObjectStoreInstance.AnimationList.Count}\n" +
-            //                $"Count diff nodes: {this._planarObjectStoreInstance.NodeList.DistinctBy(obj => new { obj.XCoordinate, obj.YCoordinate }).Count()}\n"
-            //                //+ $"All nodes\n{string.Join("\n", this._planarObjectStoreInstance.NodeList.OrderBy(obj => obj.XCoordinate).Select(obj => $"<{obj.NodeID}; ({obj.XCoordinate}; {obj.YCoordinate})>"))}\n"
+            //MessageBox.Show($"Count temp list {nameof(this._planarObjectStore.NodeList)}: {this._planarObjectStore.NodeList.Count}\n" +
+            //                $"Count temp list {nameof(this._planarObjectStore.EdgeList)}: {this._planarObjectStore.EdgeList.Count}\n" +
+            //                $"Count temp list {nameof(this._planarObjectStore.TriangleList)}: {this._planarObjectStore.TriangleList.Count}\n" +
+            //                $"Count temp list {nameof(this._planarObjectStore.AnimationList)}: {this._planarObjectStore.AnimationList.Count}\n" +
+            //                $"Count diff nodes: {this._planarObjectStore.NodeList.DistinctBy(obj => new { obj.XCoordinate, obj.YCoordinate }).Count()}\n"
+            //                //+ $"All nodes\n{string.Join("\n", this._planarObjectStore.NodeList.OrderBy(obj => obj.XCoordinate).Select(obj => $"<{obj.NodeID}; ({obj.XCoordinate}; {obj.YCoordinate})>"))}\n"
             //                , "Information", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
 
             int numOX = 100;
             int numOy = 100;
-            MessageBox.Show($"количествое разбиениий по оси х = {numOX-1}, по оси  y= {numOy-1}");
-            ApproxFunction(numOX, numOy, _planarObjectStoreInstance);                    
+            MessageBox.Show($"количествое разбиениий по оси х = {numOX - 1}, по оси  y= {numOy - 1}");
+            ApproxFunction(numOX, numOy, _planarObjectStore);
         }
         #endregion
 
@@ -363,7 +363,7 @@ namespace MastersThesis {
         private double WJFunction(double curXCoord, double curYCoord, double midXCoord, double midYCoord) {
 #warning Переключил на второй кейс, т.к. первый кейс некорректен
             //return Math.Sqrt((curXCoord - midXCoord) * (curXCoord - midXCoord) + (curYCoord - midYCoord) * (curYCoord - midYCoord));
-            return 1/((curXCoord - midXCoord) * (curXCoord - midXCoord) + (curYCoord - midYCoord) * (curYCoord - midYCoord));
+            return 1 / ((curXCoord - midXCoord) * (curXCoord - midXCoord) + (curYCoord - midYCoord) * (curYCoord - midYCoord));
         }
 
         private double GFunction(double curX, double curY, List<PlanarObjectStore.Triangle> triangleList) {
@@ -442,13 +442,13 @@ namespace MastersThesis {
             GnuPlot.WriteLine($"set yrange[{-yCoordLimit}:{yCoordLimit}]");
             //GnuPlot.Set("zrange[-50:50]");
             GnuPlot.HoldOn();
-           
-            
+
+
             int numC = planarObjectStore.NodeList.Count;
             double[] xValQ = new double[numC];
             double[] yValQ = new double[numC];
             double[] fValQ = new double[numC];
-            for(int indexx=0; indexx< numC; indexx++) {
+            for (int indexx = 0; indexx < numC; indexx++) {
                 xValQ[indexx] = planarObjectStore.NodeList[indexx].XCoordinate;
                 yValQ[indexx] = planarObjectStore.NodeList[indexx].YCoordinate;
                 fValQ[indexx] = ExactSolution(xValQ[indexx], yValQ[indexx]);
