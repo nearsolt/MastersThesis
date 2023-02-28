@@ -2,6 +2,7 @@
 
 namespace MastersThesis {
     partial class MainForm {
+
         #region Global Variables
         /// <summary>
         /// Cостояния приложения
@@ -22,7 +23,11 @@ namespace MastersThesis {
             /// <summary>
             /// Триангуляция методом измельчения
             /// </summary>
-            MeshRefinement = 3
+            MeshRefinement = 3,
+            /// <summary>
+            /// Исходная триангуляция Делоне
+            /// </summary>
+            ParentDelaunayTriangulation = 4
         }
         /// <summary>
         /// Текущиее состояние приложения
@@ -37,6 +42,30 @@ namespace MastersThesis {
         /// </summary>
         private PointF _canvasOrgin;
         /// <summary>
+        /// Начало интервала по оси Ox
+        /// </summary>
+        private double _xAxisStart;
+        /// <summary>
+        /// Конец интервала по оси Ox
+        /// </summary>
+        private double _xAxisEnd;
+        /// <summary>
+        /// Начало интервала по оси Oy
+        /// </summary>
+        private double _yAxisStart;
+        /// <summary>
+        /// Конец интервала по оси Oy
+        /// </summary>
+        private double _yAxisEnd;
+        /// <summary>
+        /// Коэффициэнт растяжения ширины в pictureBox_mainPic
+        /// </summary>
+        private double _widthScalingCoeff;
+        /// <summary>
+        /// Коэффициэнт растяжения высоты в pictureBox_mainPic
+        /// </summary>
+        private double _heightScalingCoeff;
+        /// <summary>
         /// Счетчик для анимации
         /// </summary>
         private int _animationCounter;
@@ -45,17 +74,21 @@ namespace MastersThesis {
         /// </summary>
         private int _meshRefinementCoeff = 3;
         /// <summary>
-        /// Количество знаков после запятой 
+        /// Количество знаков после запятой для координат внутренних узлов при их вычислении в методе измельчения
         /// </summary>
-        private readonly int _decimalPlaces = 2;
+        private readonly int _decimalPlaces = 3;
         /// <summary>
         /// Интервал для таймера анимации (мс)
         /// </summary>
         private readonly int _timerInterval = 1000;
         /// <summary>
-        /// Экземпляр PlanarObjectStore
+        /// Текущая триангуляция (PlanarObjectStore)
         /// </summary>
         private PlanarObjectStore _planarObjectStore = null!;
+        /// <summary>
+        /// Триангуляция Делоне, по которой была построена триангуляция методом измельчения (PlanarObjectStore)
+        /// </summary>
+        private PlanarObjectStore _parentPlanarObjectStore = null!;
         /// <summary>
         /// Список узлов (NodeStore)
         /// </summary>
@@ -78,6 +111,7 @@ namespace MastersThesis {
 
         #region Class PlanarObjectStore
         internal class PlanarObjectStore {
+
             #region Private Class Variables
             /// <summary>
             /// Список узлов
@@ -97,8 +131,7 @@ namespace MastersThesis {
             private List<TweenAnimation> _animationList;
             #endregion
 
-#warning w3: rename region
-            #region ctor & set/get
+            #region Constructor & Properties
             /// <summary>
             /// Конструктор
             /// </summary>
@@ -145,18 +178,22 @@ namespace MastersThesis {
             /// </summary>
             /// <param name="graphics">Экземпляр Graphics</param>
             /// <param name="nodeInfoVisibility">Отображение информации об узлах</param>
-            internal void DrawNodeList(ref Graphics graphics, bool nodeInfoVisibility) {
+            /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
+            /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
+            internal void DrawNodeList(ref Graphics graphics, bool nodeInfoVisibility, double xCoordShiftCoeff, double yCoordShiftCoeff) {
                 for (int j = 0; j < _nodeList.Count; j++) {
-                    _nodeList[j].DrawNode(ref graphics, nodeInfoVisibility);
+                    _nodeList[j].DrawNode(ref graphics, nodeInfoVisibility, xCoordShiftCoeff, yCoordShiftCoeff);
                 }
             }
             /// <summary>
             /// Отрисовка ребер в контроле PictureBox
             /// </summary>
             /// <param name="graphics">Экземпляр Graphics</param>
-            private void DrawEdgeList(ref Graphics graphics) {
+            /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
+            /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
+            private void DrawEdgeList(ref Graphics graphics, double xCoordShiftCoeff, double yCoordShiftCoeff) {
                 for (int j = 0; j < _edgeList.Count; j++) {
-                    _edgeList[j].DrawEdge(ref graphics);
+                    _edgeList[j].DrawEdge(ref graphics, xCoordShiftCoeff, yCoordShiftCoeff);
                 }
             }
             /// <summary>
@@ -164,9 +201,11 @@ namespace MastersThesis {
             /// </summary>
             /// <param name="graphics">Экземпляр Graphics</param>
             /// <param name="animationCounter">Счетчик для анимации</param>
-            private void DrawEdgeListWithAnimation(ref Graphics graphics, ref int animationCounter) {
+            /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
+            /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
+            private void DrawEdgeListWithAnimation(ref Graphics graphics, ref int animationCounter, double xCoordShiftCoeff, double yCoordShiftCoeff) {
                 for (int j = 0; j < _animationList[animationCounter].EdgeList.Count; j++) {
-                    _animationList[animationCounter].EdgeList[j].DrawEdge(ref graphics);
+                    _animationList[animationCounter].EdgeList[j].DrawEdge(ref graphics, xCoordShiftCoeff, yCoordShiftCoeff);
                 }
             }
             /// <summary>
@@ -175,9 +214,11 @@ namespace MastersThesis {
             /// <param name="graphics">Экземпляр Graphics</param>
             /// <param name="triangleIDVisibility">Отображение ID треугольников</param>
             /// <param name="innerTriangleVisibility">Отображение внутренних треугольников</param>
-            private void DrawInnerTriangles(ref Graphics graphics, bool triangleIDVisibility, bool innerTriangleVisibility) {
+            /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
+            /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
+            private void DrawInnerTriangles(ref Graphics graphics, bool triangleIDVisibility, bool innerTriangleVisibility, double xCoordShiftCoeff, double yCoordShiftCoeff) {
                 for (int j = 0; j < _triangleList.Count; j++) {
-                    _triangleList[j].DrawInnerTriangle(ref graphics, triangleIDVisibility, innerTriangleVisibility);
+                    _triangleList[j].DrawInnerTriangle(ref graphics, triangleIDVisibility, innerTriangleVisibility, xCoordShiftCoeff, yCoordShiftCoeff);
                 }
             }
             /// <summary>
@@ -187,9 +228,11 @@ namespace MastersThesis {
             /// <param name="animationCounter">Счетчик для анимации</param>
             /// <param name="triangleIDVisibility">Отображение ID треугольников</param>
             /// <param name="innerTriangleVisibility">Отображение внутренних треугольников</param>
-            private void DrawInnerTrianglesWithAnimation(ref Graphics graphics, ref int animationCounter, bool triangleIDVisibility, bool innerTriangleVisibility) {
+            /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
+            /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
+            private void DrawInnerTrianglesWithAnimation(ref Graphics graphics, ref int animationCounter, bool triangleIDVisibility, bool innerTriangleVisibility, double xCoordShiftCoeff, double yCoordShiftCoeff) {
                 for (int j = 0; j < _animationList[animationCounter].TriangleList.Count; j++) {
-                    _animationList[animationCounter].TriangleList[j].DrawInnerTriangle(ref graphics, triangleIDVisibility, innerTriangleVisibility);
+                    _animationList[animationCounter].TriangleList[j].DrawInnerTriangle(ref graphics, triangleIDVisibility, innerTriangleVisibility, xCoordShiftCoeff, yCoordShiftCoeff);
                 }
             }
             /// <summary>
@@ -199,10 +242,12 @@ namespace MastersThesis {
             /// <param name="triangleIDVisibility">Отображение ID треугольников</param>
             /// <param name="innerTriangleVisibility">Отображение внутренних треугольников</param>
             /// <param name="circumcircleVisibility">Отображение описанных окружностей</param>
-            private void DrawInnerTrianglesAndCircumcircles(ref Graphics graphics, bool triangleIDVisibility, bool innerTriangleVisibility, bool circumcircleVisibility) {
+            /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
+            /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
+            private void DrawInnerTrianglesAndCircumcircles(ref Graphics graphics, bool triangleIDVisibility, bool innerTriangleVisibility, bool circumcircleVisibility, double xCoordShiftCoeff, double yCoordShiftCoeff) {
                 for (int j = 0; j < _triangleList.Count; j++) {
-                    _triangleList[j].DrawInnerTriangle(ref graphics, triangleIDVisibility, innerTriangleVisibility);
-                    _triangleList[j].DrawCircumcircle(ref graphics, circumcircleVisibility);
+                    _triangleList[j].DrawInnerTriangle(ref graphics, triangleIDVisibility, innerTriangleVisibility, xCoordShiftCoeff, yCoordShiftCoeff);
+                    _triangleList[j].DrawCircumcircle(ref graphics, circumcircleVisibility, xCoordShiftCoeff, yCoordShiftCoeff);
                 }
             }
             /// <summary>
@@ -213,10 +258,12 @@ namespace MastersThesis {
             /// <param name="triangleIDVisibility">Отображение ID треугольников</param>
             /// <param name="innerTriangleVisibility">Отображение внутренних треугольников</param>
             /// <param name="circumcircleVisibility">Отображение описанных окружностей</param>
-            private void DrawInnerTrianglesAndCircumcirclesWithAnimation(ref Graphics graphics, ref int animationCounter, bool triangleIDVisibility, bool innerTriangleVisibility, bool circumcircleVisibility) {
+            /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
+            /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
+            private void DrawInnerTrianglesAndCircumcirclesWithAnimation(ref Graphics graphics, ref int animationCounter, bool triangleIDVisibility, bool innerTriangleVisibility, bool circumcircleVisibility, double xCoordShiftCoeff, double yCoordShiftCoeff) {
                 for (int j = 0; j < _animationList[animationCounter].TriangleList.Count; j++) {
-                    _animationList[animationCounter].TriangleList[j].DrawInnerTriangle(ref graphics, triangleIDVisibility, innerTriangleVisibility);
-                    _animationList[animationCounter].TriangleList[j].DrawCircumcircle(ref graphics, circumcircleVisibility);
+                    _animationList[animationCounter].TriangleList[j].DrawInnerTriangle(ref graphics, triangleIDVisibility, innerTriangleVisibility, xCoordShiftCoeff, yCoordShiftCoeff);
+                    _animationList[animationCounter].TriangleList[j].DrawCircumcircle(ref graphics, circumcircleVisibility, xCoordShiftCoeff, yCoordShiftCoeff);
                 }
             }
             /// <summary>
@@ -226,15 +273,17 @@ namespace MastersThesis {
             /// <param name="nodeInfoVisibility">Отображение информации об узлах</param>
             /// <param name="tweenAnimation">Отображение анимации</param>
             /// <param name="animationCounter">Счетчик для анимации</param>
-            internal void DrawTriangulation(ref Graphics graphics, bool nodeInfoVisibility, bool tweenAnimation, ref int animationCounter) {
+            /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
+            /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
+            internal void DrawTriangulation(ref Graphics graphics, bool nodeInfoVisibility, bool tweenAnimation, ref int animationCounter, double xCoordShiftCoeff, double yCoordShiftCoeff) {
                 if (tweenAnimation) {
                     if (animationCounter >= 0 && _animationList.Count != 0) {
-                        DrawEdgeListWithAnimation(ref graphics, ref animationCounter);
+                        DrawEdgeListWithAnimation(ref graphics, ref animationCounter, xCoordShiftCoeff, yCoordShiftCoeff);
                     }
                 } else {
-                    DrawEdgeList(ref graphics);
+                    DrawEdgeList(ref graphics, xCoordShiftCoeff, yCoordShiftCoeff);
                 }
-                DrawNodeList(ref graphics, nodeInfoVisibility);
+                DrawNodeList(ref graphics, nodeInfoVisibility, xCoordShiftCoeff, yCoordShiftCoeff);
             }
             /// <summary>
             /// Анимированная отрисовка триангуляции (без отображения описанных окружностей) в контроле PictureBox
@@ -244,17 +293,19 @@ namespace MastersThesis {
             /// <param name="tweenAnimation">Отображение анимации</param>
             /// <param name="animationCounter">Счетчик для анимации</param>
             /// <param name="innerTriangleVisibility">Отображение внутренних треугольников</param>
-            internal void DrawTriangulation(ref Graphics graphics, bool labelVisibility, bool tweenAnimation, ref int animationCounter, bool innerTriangleVisibility) {
+            /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
+            /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
+            internal void DrawTriangulation(ref Graphics graphics, bool labelVisibility, bool tweenAnimation, ref int animationCounter, bool innerTriangleVisibility, double xCoordShiftCoeff, double yCoordShiftCoeff) {
                 if (tweenAnimation) {
                     if (animationCounter >= 0 && _animationList.Count != 0) {
-                        DrawEdgeListWithAnimation(ref graphics, ref animationCounter);
-                        DrawInnerTrianglesWithAnimation(ref graphics, ref animationCounter, labelVisibility, innerTriangleVisibility);
+                        DrawEdgeListWithAnimation(ref graphics, ref animationCounter, xCoordShiftCoeff, yCoordShiftCoeff);
+                        DrawInnerTrianglesWithAnimation(ref graphics, ref animationCounter, labelVisibility, innerTriangleVisibility, xCoordShiftCoeff, yCoordShiftCoeff);
                     }
                 } else {
-                    DrawEdgeList(ref graphics);
-                    DrawInnerTriangles(ref graphics, labelVisibility, innerTriangleVisibility);
+                    DrawEdgeList(ref graphics, xCoordShiftCoeff, yCoordShiftCoeff);
+                    DrawInnerTriangles(ref graphics, labelVisibility, innerTriangleVisibility, xCoordShiftCoeff, yCoordShiftCoeff);
                 }
-                DrawNodeList(ref graphics, labelVisibility);
+                DrawNodeList(ref graphics, labelVisibility, xCoordShiftCoeff, yCoordShiftCoeff);
             }
             /// <summary>
             /// Анимированная отрисовка триангуляции в контроле PictureBox
@@ -265,22 +316,25 @@ namespace MastersThesis {
             /// <param name="animationCounter">Счетчик для анимации</param>
             /// <param name="innerTriangleVisibility">Отображение внутренних треугольников</param>
             /// <param name="circumcircleVisibility">Отображение описанных окружностей</param>
-            internal void DrawTriangulation(ref Graphics graphics, bool labelVisibility, bool tweenAnimation, ref int animationCounter, bool innerTriangleVisibility, bool circumcircleVisibility) {
+            /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
+            /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
+            internal void DrawTriangulation(ref Graphics graphics, bool labelVisibility, bool tweenAnimation, ref int animationCounter, bool innerTriangleVisibility, bool circumcircleVisibility, double xCoordShiftCoeff, double yCoordShiftCoeff) {
                 if (tweenAnimation) {
                     if (animationCounter >= 0 && _animationList.Count != 0) {
-                        DrawEdgeListWithAnimation(ref graphics, ref animationCounter);
-                        DrawInnerTrianglesAndCircumcirclesWithAnimation(ref graphics, ref animationCounter, labelVisibility, innerTriangleVisibility, circumcircleVisibility);
+                        DrawEdgeListWithAnimation(ref graphics, ref animationCounter, xCoordShiftCoeff, yCoordShiftCoeff);
+                        DrawInnerTrianglesAndCircumcirclesWithAnimation(ref graphics, ref animationCounter, labelVisibility, innerTriangleVisibility, circumcircleVisibility, xCoordShiftCoeff, yCoordShiftCoeff);
                     }
                 } else {
-                    DrawEdgeList(ref graphics);
-                    DrawInnerTrianglesAndCircumcircles(ref graphics, labelVisibility, innerTriangleVisibility, circumcircleVisibility);
+                    DrawEdgeList(ref graphics, xCoordShiftCoeff, yCoordShiftCoeff);
+                    DrawInnerTrianglesAndCircumcircles(ref graphics, labelVisibility, innerTriangleVisibility, circumcircleVisibility, xCoordShiftCoeff, yCoordShiftCoeff);
                 }
-                DrawNodeList(ref graphics, labelVisibility);
+                DrawNodeList(ref graphics, labelVisibility, xCoordShiftCoeff, yCoordShiftCoeff);
             }
             #endregion
 
             #region Base Classes: Node, Edge, Triangle, AnimationTracker
             internal class Node {
+
                 #region Private Class Variables
                 /// <summary>
                 /// ID узла
@@ -295,8 +349,8 @@ namespace MastersThesis {
                 /// </summary>
                 private double _yCoordinate;
                 #endregion
-#warning w3: rename region
-                #region ctor & set/get
+
+                #region Constructor & Properties
                 /// <summary>
                 /// Конструктор
                 /// </summary>
@@ -335,37 +389,48 @@ namespace MastersThesis {
                 /// <summary>
                 /// Получение точки (координаты узла в формате PointF)
                 /// </summary>
+                /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
+                /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
                 /// <returns></returns>
-                internal PointF GetPoint() {
-                    return new PointF((float)_xCoordinate, -(float)_yCoordinate);
+                internal PointF GetPoint(double xCoordShiftCoeff, double yCoordShiftCoeff) {
+                    return new PointF((float)(_xCoordinate * xCoordShiftCoeff), -(float)(_yCoordinate * yCoordShiftCoeff));
                 }
                 /// <summary>
                 /// Получение точки (координаты узла в формате PointF) со сдвигом относительно толщины
                 /// </summary>
                 /// <param name="halfThickness">Половина толщины точки</param>
+                /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
+                /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
                 /// <returns></returns>
-                private PointF GetPointForEllipse(int halfThickness) {
-                    return new PointF((float)_xCoordinate - halfThickness, -(float)_yCoordinate - halfThickness);
+                private PointF GetPointForEllipse(int halfThickness, double xCoordShiftCoeff, double yCoordShiftCoeff) {
+                    return new PointF((float)(_xCoordinate * xCoordShiftCoeff) - halfThickness, -(float)(_yCoordinate * yCoordShiftCoeff) - halfThickness);
                 }
                 /// <summary>
                 /// Отрисовка узла в контроле PictureBox
                 /// </summary>
                 /// <param name="graphics">Экземпляр Graphics</param>
                 /// <param name="nodeInfoVisibility">Отображение информации об узле</param>
-                internal void DrawNode(ref Graphics graphics, bool nodeInfoVisibility) {
+                /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
+                /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
+                internal void DrawNode(ref Graphics graphics, bool nodeInfoVisibility, double xCoordShiftCoeff, double yCoordShiftCoeff) {
                     int halfThickness = 2;
-                    graphics.FillEllipse(new Pen(Color.BlueViolet, halfThickness).Brush, new RectangleF(GetPointForEllipse(halfThickness), new SizeF(2 * halfThickness, 2 * halfThickness)));
+                    graphics.FillEllipse(new Pen(Color.BlueViolet, halfThickness).Brush, new RectangleF(GetPointForEllipse(halfThickness, xCoordShiftCoeff, yCoordShiftCoeff),
+                                         new SizeF(2 * halfThickness, 2 * halfThickness)));
                     if (nodeInfoVisibility) {
                         string nodeInfo = $"{_nodeID} ({_xCoordinate}; {_yCoordinate})";
+#warning w1:
+                        //string nodeInfo = $"{_nodeID} ({Math.Round(_xCoordinate, 2, MidpointRounding.AwayFromZero)}; {Math.Round(_yCoordinate, 2, MidpointRounding.AwayFromZero)})";
                         SizeF strSize = graphics.MeasureString(nodeInfo, new Font("Cambria", 6));
                         graphics.DrawString(nodeInfo, new Font("Cambria", 6), new Pen(Color.DarkBlue, halfThickness).Brush,
-                                            GetPointForEllipse(halfThickness).X + 3 - strSize.Width / 2, GetPointForEllipse(halfThickness).Y + 3 + strSize.Height / 2);
+                                            GetPointForEllipse(halfThickness, xCoordShiftCoeff, yCoordShiftCoeff).X + 3 - strSize.Width / 2,
+                                            GetPointForEllipse(halfThickness, xCoordShiftCoeff, yCoordShiftCoeff).Y + 3 + strSize.Height / 2);
                     }
                 }
                 #endregion
             }
 
             internal class Edge {
+
                 #region Private Class Variables
                 /// <summary>
                 /// ID ребра
@@ -380,8 +445,8 @@ namespace MastersThesis {
                 /// </summary>
                 private Node _secondNode;
                 #endregion
-#warning w3: rename region
-                #region ctor & set/get
+
+                #region Constructor & Properties
                 /// <summary>
                 /// Конструктор
                 /// </summary>
@@ -430,13 +495,16 @@ namespace MastersThesis {
                 /// Отрисовка ребра в контроле PictureBox
                 /// </summary>
                 /// <param name="graphics">Экземпляр Graphics</param>
-                internal void DrawEdge(ref Graphics graphics) {
-                    graphics.DrawLine(new Pen(Color.DarkOrange, 1), _firstNode.GetPoint(), _secondNode.GetPoint());
+                /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
+                /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
+                internal void DrawEdge(ref Graphics graphics, double xCoordShiftCoeff, double yCoordShiftCoeff) {
+                    graphics.DrawLine(new Pen(Color.DarkOrange, 1), _firstNode.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff), _secondNode.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff));
                 }
                 #endregion
             }
 
             internal class Triangle {
+
                 #region Private Class Variables
                 /// <summary>
                 /// ID треугольника
@@ -476,8 +544,7 @@ namespace MastersThesis {
                 private Node _nodeForEllipse = null!;
                 #endregion
 
-#warning w3: rename region
-                #region ctor & set/get
+                #region Constructor & Properties
                 /// <summary>
                 /// Конструктор
                 /// </summary>
@@ -521,26 +588,32 @@ namespace MastersThesis {
                 /// <summary>
                 /// Получение первой точки (координаты первого узла в формате PointF) со сдвигом относительно коэффициента растяжения _scalingCoeff
                 /// </summary>
+                /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
+                /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
                 /// <returns></returns>
-                private PointF GetFirstPoint() {
-                    return new PointF((float)(_geometricCenter.GetPoint().X * (1 - _scalingCoeff) + _firstNode.GetPoint().X * _scalingCoeff),
-                                      (float)(_geometricCenter.GetPoint().Y * (1 - _scalingCoeff) + _firstNode.GetPoint().Y * _scalingCoeff));
+                private PointF GetFirstPoint(double xCoordShiftCoeff, double yCoordShiftCoeff) {
+                    return new PointF((float)(_geometricCenter.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).X * (1 - _scalingCoeff) + _firstNode.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).X * _scalingCoeff),
+                                      (float)(_geometricCenter.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).Y * (1 - _scalingCoeff) + _firstNode.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).Y * _scalingCoeff));
                 }
                 /// <summary>
                 /// Получение второй точки (координаты второго узла в формате PointF) со сдвигом относительно коэффициента растяжения _scalingCoeff
                 /// </summary>
+                /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
+                /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
                 /// <returns></returns>
-                private PointF GetSecondPoint() {
-                    return new PointF((float)(_geometricCenter.GetPoint().X * (1 - _scalingCoeff) + _secondNode.GetPoint().X * _scalingCoeff),
-                                      (float)(_geometricCenter.GetPoint().Y * (1 - _scalingCoeff) + _secondNode.GetPoint().Y * _scalingCoeff));
+                private PointF GetSecondPoint(double xCoordShiftCoeff, double yCoordShiftCoeff) {
+                    return new PointF((float)(_geometricCenter.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).X * (1 - _scalingCoeff) + _secondNode.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).X * _scalingCoeff),
+                                      (float)(_geometricCenter.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).Y * (1 - _scalingCoeff) + _secondNode.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).Y * _scalingCoeff));
                 }
                 /// <summary>
                 /// Получение третьей точки (координаты третьего узла в формате PointF) со сдвигом относительно коэффициента растяжения _scalingCoeff
                 /// </summary>
+                /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
+                /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
                 /// <returns></returns>
-                private PointF GetThirdPoint() {
-                    return new PointF((float)(_geometricCenter.GetPoint().X * (1 - _scalingCoeff) + _thirdNode.GetPoint().X * _scalingCoeff),
-                                      (float)(_geometricCenter.GetPoint().Y * (1 - _scalingCoeff) + _thirdNode.GetPoint().Y * _scalingCoeff));
+                private PointF GetThirdPoint(double xCoordShiftCoeff, double yCoordShiftCoeff) {
+                    return new PointF((float)(_geometricCenter.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).X * (1 - _scalingCoeff) + _thirdNode.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).X * _scalingCoeff),
+                                      (float)(_geometricCenter.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).Y * (1 - _scalingCoeff) + _thirdNode.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).Y * _scalingCoeff));
                 }
                 /// <summary>
                 /// Определение элементов для описанной окружности (нахождение центра, радиуса и вспомогательного узла _nodeForEllipse)
@@ -572,12 +645,14 @@ namespace MastersThesis {
                 /// <param name="graphics">Экземпляр Graphics</param>
                 /// <param name="triangleIDVisibility">Отображение ID треугольника</param>
                 /// <param name="innerTriangleVisibility">Отображение внутреннего треугольника</param>
-                internal void DrawInnerTriangle(ref Graphics graphics, bool triangleIDVisibility, bool innerTriangleVisibility) {
+                /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
+                /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
+                internal void DrawInnerTriangle(ref Graphics graphics, bool triangleIDVisibility, bool innerTriangleVisibility, double xCoordShiftCoeff, double yCoordShiftCoeff) {
                     if (innerTriangleVisibility) {
-                        PointF[] curvePoints = new PointF[] { GetFirstPoint(), GetSecondPoint(), GetThirdPoint() };
+                        PointF[] curvePoints = new PointF[] { GetFirstPoint(xCoordShiftCoeff, yCoordShiftCoeff), GetSecondPoint(xCoordShiftCoeff, yCoordShiftCoeff), GetThirdPoint(xCoordShiftCoeff, yCoordShiftCoeff) };
                         graphics.FillPolygon(new Pen(Color.LightGreen, 1).Brush, curvePoints);
                         if (triangleIDVisibility) {
-                            graphics.DrawString(_triangleID.ToString(), new Font("Cambria", 6), new Pen(Color.DeepPink, 2).Brush, _geometricCenter.GetPoint());
+                            graphics.DrawString(_triangleID.ToString(), new Font("Cambria", 6), new Pen(Color.DeepPink, 2).Brush, _geometricCenter.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff));
                         }
                     }
                 }
@@ -586,16 +661,19 @@ namespace MastersThesis {
                 /// </summary>
                 /// <param name="graphics">Экземпляр Graphics</param>
                 /// <param name="circumcircleVisibility">Отображение описанной окружности</param>
-                internal void DrawCircumcircle(ref Graphics graphics, bool circumcircleVisibility) {
+                /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
+                /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
+                internal void DrawCircumcircle(ref Graphics graphics, bool circumcircleVisibility, double xCoordShiftCoeff, double yCoordShiftCoeff) {
                     if (circumcircleVisibility) {
-                        graphics.DrawEllipse(new Pen(Color.LightGreen, 1), _nodeForEllipse.GetPoint().X, _nodeForEllipse.GetPoint().Y, 
-                                             (float)_circumcircleRadius * 2, (float)_circumcircleRadius * 2);
+                        graphics.DrawEllipse(new Pen(Color.LightGreen, 1), _nodeForEllipse.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).X, _nodeForEllipse.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).Y,
+                                             (float)(_circumcircleRadius * xCoordShiftCoeff * 2), (float)(_circumcircleRadius * yCoordShiftCoeff * 2));
                     }
                 }
                 #endregion
             }
 
             internal class TweenAnimation {
+
                 #region Private Class Variables
                 /// <summary>
                 /// Список ребер
@@ -607,8 +685,7 @@ namespace MastersThesis {
                 private List<Triangle> _triangleList = null!;
                 #endregion
 
-#warning w3: rename region
-                #region set/get
+                #region Properties
                 /// <summary>
                 /// Список ребер
                 /// </summary>

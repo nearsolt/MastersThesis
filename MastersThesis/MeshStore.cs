@@ -3,6 +3,7 @@
 namespace MastersThesis {
     partial class Triangulation {
         partial class MeshStore {
+            
             #region Class Helper
             internal class Helper {
                 private static bool CheckProjectionsIntersection(double firstNodeCoordOfEdge1, double secondNodeCoordOfEdge1, double firstNodeCoordOfEdge2, double secondNodeCoordOfEdge2) {

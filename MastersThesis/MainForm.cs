@@ -1,153 +1,190 @@
-﻿//using static MastersThesis.MainForm.PlanarObjectStore;
+﻿using static MastersThesis.MainForm.PlanarObjectStore;
+using static MastersThesis.Triangulation.MeshStore;
 
 namespace MastersThesis {
     public partial class MainForm : Form {
+        
         public MainForm() {
             InitializeComponent();
         }
+
+        #region Event Handlers
         private void MainForm_Load(object sender, EventArgs e) {
-            this._planarObjectStore = new PlanarObjectStore();
-            InitializeCanvasSize();
             GenerateRandomNodes();
         }
-        private void pictureBox_mainPic_SizeChanged(object sender, EventArgs e) {
-            InitializeCanvasSize();
-        }
         private void timer_animationTimer_Tick(object sender, EventArgs e) {
-            if (this._animationCounter == this._planarObjectStore.AnimationList.Count - 1) {
-                this._animationCounter = 0;
+            if (_animationCounter == _planarObjectStore.AnimationList.Count - 1) {
+                _animationCounter = 0;
             } else {
-                this._animationCounter++;
+                _animationCounter++;
             }
-            this.pictureBox_mainPic.Refresh();
+            pictureBox_mainPic.Refresh();
         }
         private void pictureBox_mainPic_Paint(object sender, PaintEventArgs e) {
-            Graphics gr = e.Graphics;
-            gr.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-            gr.TranslateTransform(this._canvasOrgin.X, this._canvasOrgin.Y);
+            Graphics graphics = e.Graphics;
+            graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+            graphics.TranslateTransform(_canvasOrgin.X, _canvasOrgin.Y);
 
-            switch (this._applicationState) {
+            switch (_applicationState) {
                 case ApplicationStateType.NodeGeneration:
-                    this._planarObjectStore.DrawNodeList(ref gr, this.checkBox_labelVisibility.Checked);
+                    _planarObjectStore.DrawNodeList(ref graphics, checkBox_labelVisibility.Checked, _widthScalingCoeff, _heightScalingCoeff);
                     break;
                 case ApplicationStateType.GreedyTriangulation:
-                    this._planarObjectStore.DrawTriangulation(ref gr, this.checkBox_labelVisibility.Checked, this.checkBox_tweenAnimation.Checked, ref this._animationCounter);
+                    _planarObjectStore.DrawTriangulation(ref graphics, checkBox_labelVisibility.Checked, checkBox_tweenAnimation.Checked, ref _animationCounter,
+                                                         _widthScalingCoeff, _heightScalingCoeff);
                     break;
                 case ApplicationStateType.DelaunayTriangulation:
-                    this._planarObjectStore.DrawTriangulation(ref gr, this.checkBox_labelVisibility.Checked, this.checkBox_tweenAnimation.Checked, ref this._animationCounter,
-                                                                this.checkBox_meshVisibility.Checked, this.checkBox_circumcircleVisibility.Checked);
+                    _planarObjectStore.DrawTriangulation(ref graphics, checkBox_labelVisibility.Checked, checkBox_tweenAnimation.Checked, ref _animationCounter,
+                                                         checkBox_innerTriangleVisibility.Checked, checkBox_circumcircleVisibility.Checked, _widthScalingCoeff, _heightScalingCoeff);
                     break;
                 case ApplicationStateType.MeshRefinement:
-                    this._planarObjectStore.DrawTriangulation(ref gr, this.checkBox_labelVisibility.Checked, this.checkBox_tweenAnimation.Checked, ref this._animationCounter,
-                                                                this.checkBox_meshVisibility.Checked);
+                    _planarObjectStore.DrawTriangulation(ref graphics, checkBox_labelVisibility.Checked, checkBox_tweenAnimation.Checked, ref _animationCounter,
+                                                         checkBox_innerTriangleVisibility.Checked, _widthScalingCoeff, _heightScalingCoeff);
+                    break;
+                case ApplicationStateType.ParentDelaunayTriangulation:
+                    _parentPlanarObjectStore.DrawTriangulation(ref graphics, checkBox_labelVisibility.Checked, checkBox_tweenAnimation.Checked, ref _animationCounter,
+                                                         checkBox_innerTriangleVisibility.Checked, checkBox_circumcircleVisibility.Checked, _widthScalingCoeff, _heightScalingCoeff);
                     break;
             }
         }
 
         #region CheckBoxs
         private void checkBox_labelVisibility_CheckedChanged(object sender, EventArgs e) {
-            this.pictureBox_mainPic.Refresh();
+            pictureBox_mainPic.Refresh();
         }
         private void checkBox_circumcircleVisibility_CheckedChanged(object sender, EventArgs e) {
-            this.pictureBox_mainPic.Refresh();
+            pictureBox_mainPic.Refresh();
         }
         private void checkBox_tweenAnimation_CheckedChanged(object sender, EventArgs e) {
-            if (this.checkBox_tweenAnimation.Checked) {
-                this._animationCounter = 0;
-                this.timer_animationTimer.Interval = this._timerInterval;
-                this.timer_animationTimer.Enabled = true;
-                this.timer_animationTimer.Start();
+            if (checkBox_tweenAnimation.Checked) {
+                _animationCounter = 0;
+                timer_animationTimer.Interval = _timerInterval;
+                timer_animationTimer.Enabled = true;
+                timer_animationTimer.Start();
             } else {
-                this.timer_animationTimer.Enabled = false;
-                this.timer_animationTimer.Stop();
+                timer_animationTimer.Stop();
+                timer_animationTimer.Enabled = false;
             }
-            this.pictureBox_mainPic.Refresh();
+            pictureBox_mainPic.Refresh();
         }
-        private void checkBox_meshVisibility_CheckedChanged(object sender, EventArgs e) {
-            this.pictureBox_mainPic.Refresh();
+        private void checkBox_innerTriangleVisibility_CheckedChanged(object sender, EventArgs e) {
+            pictureBox_mainPic.Refresh();
         }
         #endregion
 
         #region Buttons
         private void button_generateNodes_Click(object sender, EventArgs e) {
-            this.checkBox_meshVisibility.Checked = false;
-            this.checkBox_meshVisibility.Enabled = true;
-            this.checkBox_circumcircleVisibility.Checked = false;
-            this.checkBox_circumcircleVisibility.Enabled = true;
+            checkBox_innerTriangleVisibility.Checked = false;
+            checkBox_innerTriangleVisibility.Enabled = true;
+            checkBox_circumcircleVisibility.Checked = false;
+            checkBox_circumcircleVisibility.Enabled = true;
             GenerateRandomNodes();
         }
         private void button_greedyTriangulation_Click(object sender, EventArgs e) {
-            this.checkBox_meshVisibility.Checked = false;
-            this.checkBox_meshVisibility.Enabled = false;
-            this.checkBox_circumcircleVisibility.Checked = false;
-            this.checkBox_circumcircleVisibility.Enabled = false;
+            checkBox_innerTriangleVisibility.Checked = false;
+            checkBox_innerTriangleVisibility.Enabled = false;
+            checkBox_circumcircleVisibility.Checked = false;
+            checkBox_circumcircleVisibility.Enabled = false;
             GreedyTriangulation();
         }
         private void button_delaunayTriangulation_Click(object sender, EventArgs e) {
-            this.checkBox_meshVisibility.Enabled = true;
-            this.checkBox_circumcircleVisibility.Enabled = true;
+            checkBox_innerTriangleVisibility.Enabled = true;
+            checkBox_circumcircleVisibility.Enabled = true;
             DelaunayTriangulation();
         }
         private void button_meshRefinement_Click(object sender, EventArgs e) {
-            this.checkBox_circumcircleVisibility.Checked = false;
-            this.checkBox_circumcircleVisibility.Enabled = false;
+            checkBox_circumcircleVisibility.Checked = false;
+            checkBox_circumcircleVisibility.Enabled = false;
             MeshRefinement();
         }
+        #endregion
+        
         #endregion
 
         #region Methods
         /// <summary>
+        /// Инициализация области определения и коэффициэнтов растяжения ширины и высоты в pictureBox_mainPic
+        /// </summary>
+        private void InitializeDomainOfDefinition() {
+            if (checkBox_setDomainOfDefinition.Checked) {
+                _xAxisStart = (double)numericUpDown_xAxisStart.Value;
+                _xAxisEnd = (double)numericUpDown_xAxisEnd.Value;
+
+                _yAxisStart = (double)numericUpDown_yAxisStart.Value;
+                _yAxisEnd = (double)numericUpDown_yAxisEnd.Value;
+
+                _widthScalingCoeff = Math.Round(_canvasSize.Width / (_xAxisEnd - _xAxisStart), 2, MidpointRounding.AwayFromZero);
+                _heightScalingCoeff = Math.Round(_canvasSize.Height / (_yAxisEnd - _yAxisStart), 2, MidpointRounding.AwayFromZero);
+
+            } else {
+                _xAxisStart = -Math.Round(_canvasSize.Width * 0.5, 2, MidpointRounding.AwayFromZero);
+                _xAxisEnd = Math.Round(_canvasSize.Width * 0.5, 2, MidpointRounding.AwayFromZero);
+
+                _yAxisStart = -Math.Round(_canvasSize.Height * 0.5, 2, MidpointRounding.AwayFromZero);
+                _yAxisEnd = Math.Round(_canvasSize.Height * 0.5, 2, MidpointRounding.AwayFromZero);
+
+                _widthScalingCoeff = 1;
+                _heightScalingCoeff = 1;
+            }
+        }
+        /// <summary>
         /// Инициализация используемой области в pictureBox_mainPic и точки начала координат 
         /// </summary>
         private void InitializeCanvasSize() {
-            this._canvasSize = new SizeF((float)(this.pictureBox_mainPic.Width * 0.9), (float)(this.pictureBox_mainPic.Height * 0.9));
-            this._canvasOrgin = new PointF((float)(this.pictureBox_mainPic.Width * 0.5), (float)(this.pictureBox_mainPic.Height * 0.5));
-            this.pictureBox_mainPic.Refresh();
+            _canvasSize = new SizeF((float)(pictureBox_mainPic.Width * 0.9), (float)(pictureBox_mainPic.Height * 0.9));
+            InitializeDomainOfDefinition();
+            if (checkBox_setDomainOfDefinition.Checked) {
+                _canvasOrgin = new PointF((float)(pictureBox_mainPic.Width * 0.5 - (_xAxisStart + _xAxisEnd) * 0.5 * _widthScalingCoeff),
+                                          (float)(pictureBox_mainPic.Height * 0.5 + (_yAxisStart + _yAxisEnd) * 0.5 * _heightScalingCoeff));
+            } else {
+                _canvasOrgin = new PointF((float)(pictureBox_mainPic.Width * 0.5), (float)(pictureBox_mainPic.Height * 0.5));
+            }
+            pictureBox_mainPic.Refresh();
         }
         /// <summary>
-        /// Random-генерация узлов
+        /// Random-генерация узлов в  используемой области
         /// </summary>
         private void GenerateRandomNodes() {
-            this._applicationState = ApplicationStateType.NodeGeneration;
-            int nodeCount = (int)this.numericUpDown_numberOfNodes.Value;
+            InitializeCanvasSize();
+            _applicationState = ApplicationStateType.NodeGeneration;
+            int nodeCount = (int)numericUpDown_numberOfNodes.Value;
 
-            this._nodeStoreList = new List<Triangulation.MeshStore.NodeStore>();
-            this._edgeStoreList = new List<Triangulation.MeshStore.EdgeStore>();
-            this._triangleStoreList = new List<Triangulation.MeshStore.TriangleStore>();
+            _nodeStoreList = new List<NodeStore>();
+            _edgeStoreList = new List<EdgeStore>();
+            _triangleStoreList = new List<TriangleStore>();
 
-            this._planarObjectStore = new PlanarObjectStore();
-            List<PlanarObjectStore.Node> tempNodeList = new List<PlanarObjectStore.Node>();
+            _planarObjectStore = new PlanarObjectStore();
+            List<Node> tempNodeList = new List<Node>();
 
             Random random = new Random();
 
-            #region hf_1.1 хотфикс на лимит 
-            int xCoordLimit = (int)(this._canvasSize.Width * 0.5);
-            int yCoordLimit = (int)(this._canvasSize.Height * 0.5);
-
-            //int xCoordLimit = 10;
-            //int yCoordLimit = 10;
-            #endregion
-
-            tempNodeList.Add(new PlanarObjectStore.Node(0, -xCoordLimit, -yCoordLimit));
-            tempNodeList.Add(new PlanarObjectStore.Node(1, -xCoordLimit, yCoordLimit));
-            tempNodeList.Add(new PlanarObjectStore.Node(2, xCoordLimit, yCoordLimit));
-            tempNodeList.Add(new PlanarObjectStore.Node(3, xCoordLimit, -yCoordLimit));
+            tempNodeList.Add(new Node(0, _xAxisStart, _yAxisStart));
+            tempNodeList.Add(new Node(1, _xAxisStart, _yAxisEnd));
+            tempNodeList.Add(new Node(2, _xAxisEnd, _yAxisStart));
+            tempNodeList.Add(new Node(3, _xAxisEnd, _yAxisEnd));
 
             if (nodeCount > 4) {
                 for (int j = 4; j < nodeCount; j++) {
-                    double tmpXCoord = Math.Round((float)random.Next(-xCoordLimit * 100, xCoordLimit * 100) / 100, this._decimalPlaces, MidpointRounding.AwayFromZero);
-                    double tmpYCoord = Math.Round((float)random.Next(-yCoordLimit * 100, yCoordLimit * 100) / 100, this._decimalPlaces, MidpointRounding.AwayFromZero);
+                    double tmpXCoord = Math.Round(random.Next(Convert.ToInt32(Math.Ceiling(_xAxisStart)) * 100, Convert.ToInt32(Math.Floor(_xAxisEnd)) * 100) / 100.0,
+                                                  2, MidpointRounding.AwayFromZero);
+                    double tmpYCoord = Math.Round(random.Next(Convert.ToInt32(Math.Ceiling(_yAxisStart)) * 100, Convert.ToInt32(Math.Floor(_yAxisEnd)) * 100) / 100.0,
+                                                  2, MidpointRounding.AwayFromZero);
 
                     if (tempNodeList.Exists(obj => obj.XCoordinate == tmpXCoord && obj.YCoordinate == tmpYCoord)) {
                         j--;
                         continue;
                     }
-                    tempNodeList.Add(new PlanarObjectStore.Node(j, tmpXCoord, tmpYCoord));
+                    tempNodeList.Add(new Node(j, tmpXCoord, tmpYCoord));
                 }
             }
-            this._planarObjectStore.NodeList = tempNodeList;
-            this.pictureBox_mainPic.Refresh();
+            _planarObjectStore.NodeList = tempNodeList;
+            pictureBox_mainPic.Refresh();
         }
+        #endregion
+
+       
+
+
         private void GreedyTriangulation() {
             if (this._applicationState == ApplicationStateType.MeshRefinement) {
                 MessageBox.Show("Perform node generation before Greedy triangulation.", "Information",
@@ -198,7 +235,7 @@ namespace MastersThesis {
                 return;
             }
             this._applicationState = ApplicationStateType.MeshRefinement;
-            this._meshRefinementCoeff = (int)this.numericUpDown_meshRefinementCoefficient.Value;
+            this._meshRefinementCoeff = (int)this.numericUpDown_meshRefinementCoeff.Value;
             this._animationCounter = 0;
 
             List<PlanarObjectStore.Node> tempNodeList = new List<PlanarObjectStore.Node>();
@@ -218,7 +255,7 @@ namespace MastersThesis {
         }
 
 
-        #endregion
+
 
         #region Test Buttons & Debug
 #warning To do: remove from the final version with control (button_test visible = false)
@@ -231,10 +268,18 @@ namespace MastersThesis {
             //                //+ $"All nodes\n{string.Join("\n", this._planarObjectStore.NodeList.OrderBy(obj => obj.XCoordinate).Select(obj => $"<{obj.NodeID}; ({obj.XCoordinate}; {obj.YCoordinate})>"))}\n"
             //                , "Information", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
 
-            int numOX = 100;
-            int numOy = 100;
-            MessageBox.Show($"количествое разбиениий по оси х = {numOX - 1}, по оси  y= {numOy - 1}");
-            ApproxFunction(numOX, numOy, _planarObjectStore);
+            int nLC = _planarObjectStore.NodeList.Count;
+            int eLC = _planarObjectStore.EdgeList.Count;
+            int tLC = _planarObjectStore.TriangleList.Count;
+
+            ApproxFunction((int)numericUpDown_xAxisNum.Value, (int)numericUpDown_yAxisNum.Value, _planarObjectStore);
+
+            MessageBox.Show($"nodeListCount: {nLC}\nedgeListCount: {eLC}\ntriangleListCount: {tLC}\n" +
+                            $"identity (n-e+t=1): {nLC - eLC + tLC == 1}\n" +
+                            $"количество разбиениий по оси х = {(int)numericUpDown_xAxisNum.Value - 1}, по оси  y= {(int)numericUpDown_yAxisNum.Value - 1}"
+                , "Information", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+
+            
         }
         #endregion
 
@@ -272,7 +317,7 @@ namespace MastersThesis {
         /// <param name="secondNode"></param>
         /// <param name="thirdNode"></param>
         /// <returns></returns>
-        private double[,] InverseLambdaFunction(PlanarObjectStore.Node firstNode, PlanarObjectStore.Node secondNode, PlanarObjectStore.Node thirdNode) {
+        private double[,] InverseLambdaFunction(Node firstNode, Node secondNode, Node thirdNode) {
             double[,] inverseLambda = new double[3, 3];
 
             double x1 = firstNode.XCoordinate;
@@ -316,7 +361,7 @@ namespace MastersThesis {
         /// <param name="thirdNode"></param>
         /// <param name="functionValues"></param>
         /// <returns></returns>
-        private double GJFunction(double[] data, PlanarObjectStore.Node firstNode, PlanarObjectStore.Node secondNode, PlanarObjectStore.Node thirdNode, double[] functionValues) {
+        private double GJFunction(double[] data, Node firstNode, Node secondNode, Node thirdNode, double[] functionValues) {
             double result = 0;
             double[] tmp = new double[3];
 
@@ -334,7 +379,7 @@ namespace MastersThesis {
             return result;
         }
 
-        private double GJFunctionTwo(double[] data, PlanarObjectStore.Node firstNode, PlanarObjectStore.Node secondNode, PlanarObjectStore.Node thirdNode, double[] functionValues) {
+        private double GJFunctionTwo(double[] data, Node firstNode, Node secondNode, Node thirdNode, double[] functionValues) {
             double result = 0;
             double[] tmp = new double[3];
 
@@ -361,12 +406,10 @@ namespace MastersThesis {
         /// <param name="midYCoord"></param>
         /// <returns></returns>
         private double WJFunction(double curXCoord, double curYCoord, double midXCoord, double midYCoord) {
-#warning Переключил на второй кейс, т.к. первый кейс некорректен
-            //return Math.Sqrt((curXCoord - midXCoord) * (curXCoord - midXCoord) + (curYCoord - midYCoord) * (curYCoord - midYCoord));
             return 1 / ((curXCoord - midXCoord) * (curXCoord - midXCoord) + (curYCoord - midYCoord) * (curYCoord - midYCoord));
         }
 
-        private double GFunction(double curX, double curY, List<PlanarObjectStore.Triangle> triangleList) {
+        private double GFunction(double curX, double curY, List<Triangle> triangleList) {
 
             double result = 0;
             double w_cur = 0;
@@ -382,7 +425,6 @@ namespace MastersThesis {
                     ExactSolution(triangleList[j].ThirdNode.XCoordinate,triangleList[j].ThirdNode.YCoordinate)
                 };
                 w_sum += w_cur;
-#warning Переключил на перйвый кейс, т.к. второй - точно ошибочный
                 result += w_cur * GJFunction(data, triangleList[j].FirstNode, triangleList[j].SecondNode, triangleList[j].ThirdNode, functionValues);
             }
 
@@ -391,58 +433,26 @@ namespace MastersThesis {
 
         private void ApproxFunction(int nodeNum_oX, int nodeNum_oY, PlanarObjectStore planarObjectStore) {
 
-            #region hf_1.2 хотфикс на лимит 
-            int xCoordLimit = (int)(this._canvasSize.Width * 0.5);
-            int yCoordLimit = (int)(this._canvasSize.Height * 0.5);
+            
 
-            double h_oX = this._canvasSize.Width / (nodeNum_oX - 1);
-            double h_oY = this._canvasSize.Height / (nodeNum_oY - 1);
+            double h_oX = (_xAxisEnd - _xAxisStart) / (nodeNum_oX - 1);
+            double h_oY = (_yAxisEnd - _yAxisStart) / (nodeNum_oY - 1);
 
             double[] xVal = new double[nodeNum_oX * nodeNum_oY];
             double[] yVal = new double[nodeNum_oX * nodeNum_oY];
             double[] zVal = new double[nodeNum_oX * nodeNum_oY];
             double[] exactVal = new double[nodeNum_oX * nodeNum_oY];
             int index = 0;
-
-            //for (double j = -xCoordLimit; j <= xCoordLimit; j += h_oX) {
-            //    for (double k = -yCoordLimit; k <= yCoordLimit; k += h_oY) {
-            //        xVal[index] = j;
-            //        yVal[index] = k;
-            //        zVal[index] = GFunction(j, k, planarObjectStore.TriangleList);
-            //        exactVal[index] = ExactSolution(j, k);
-            //        index++;
-            //    }
-            //}
-
-            //double xCoordLimit = 10.0;
-            //double yCoordLimit = 10.0;
-
-            //double h_oX = 20.0 / (nodeNum_oX - 1);
-            //double h_oY = 20.0 / (nodeNum_oY - 1);
-
-            //double[] xVal = new double[nodeNum_oX * nodeNum_oY];
-            //double[] yVal = new double[nodeNum_oX * nodeNum_oY];
-            //double[] zVal = new double[nodeNum_oX * nodeNum_oY];
-            //double[] exactVal = new double[nodeNum_oX * nodeNum_oY];
-            //int index = 0;
-
+          
             for (double j = 0; j < nodeNum_oX; j++) {
                 for (double k = 0; k < nodeNum_oY; k++) {
-                    xVal[index] = -xCoordLimit + j * h_oX;
-                    yVal[index] = -yCoordLimit + k * h_oY;
+                    xVal[index] = _xAxisStart + j * h_oX;
+                    yVal[index] = _yAxisStart + k * h_oY;
                     zVal[index] = GFunction(xVal[index], yVal[index], planarObjectStore.TriangleList);
                     exactVal[index] = ExactSolution(xVal[index], yVal[index]);
                     index++;
                 }
             }
-            #endregion
-
-            GnuPlot.Set("dgrid3d 40,40,2");
-            GnuPlot.WriteLine($"set xrange[{-xCoordLimit}:{xCoordLimit}]");
-            GnuPlot.WriteLine($"set yrange[{-yCoordLimit}:{yCoordLimit}]");
-            //GnuPlot.Set("zrange[-50:50]");
-            GnuPlot.HoldOn();
-
 
             int numC = planarObjectStore.NodeList.Count;
             double[] xValQ = new double[numC];
@@ -453,13 +463,75 @@ namespace MastersThesis {
                 yValQ[indexx] = planarObjectStore.NodeList[indexx].YCoordinate;
                 fValQ[indexx] = ExactSolution(xValQ[indexx], yValQ[indexx]);
             }
+
+
+
+            GnuPlot.Set("dgrid3d 40,40,2");
+            GnuPlot.WriteLine($"set xrange[{_xAxisStart}:{_xAxisEnd}]");
+            GnuPlot.WriteLine($"set yrange[{_yAxisStart}:{_yAxisEnd}]");
+            
+            GnuPlot.HoldOn();
+
+
+            
+
+            // по изначальным узлам
             GnuPlot.SPlot(xValQ, yValQ, fValQ);
-            MessageBox.Show("qqwe");
+           
+            // интеполяция
             GnuPlot.SPlot(xVal, yVal, zVal);
+
+            // точная 
             //GnuPlot.SPlot(xVal, yVal, exactVal, "with pm3d");
         }
 
 
         #endregion
+
+
+        
+
+
+
+        #region Interpolation
+
+
+
+        #endregion
+
+        private void button_interpolation_Click(object sender, EventArgs e) {
+
+        }
+        private void button_parentDelaunayTriangulation_Click(object sender, EventArgs e) {
+
+        }
+        private void checkBox_setDomainOfDefinition_CheckedChanged(object sender, EventArgs e) {
+
+        }
+
+        #region Useless
+#warning Useless
+        private void pictureBox_mainPic_SizeChanged(object sender, EventArgs e) {
+#warning w0: commit
+            //InitializeCanvasSize();
+        }
+        private void numericUpDown_xAxisStart_ValueChanged(object sender, EventArgs e) {
+
+        }
+
+        private void numericUpDown_xAxisEnd_ValueChanged(object sender, EventArgs e) {
+
+        }
+
+        private void numericUpDown_yAxisStart_ValueChanged(object sender, EventArgs e) {
+
+        }
+
+        private void numericUpDown_yAxisEnd_ValueChanged(object sender, EventArgs e) {
+
+        }
+        #endregion
+
+        
     }
 }
