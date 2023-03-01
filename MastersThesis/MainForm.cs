@@ -107,7 +107,8 @@ namespace MastersThesis {
 
         #region Exact Solution
         private double ExactSolution(double x, double y) {
-            return Math.Sin(x) * y + x * Math.Cos(y) + x + y;
+            //return Math.Sin(x) * y + x * Math.Cos(y) + x + y;
+            return 0.1 * (Math.Pow(x, 2) - Math.Pow(y - 10, 2)) - 2 * x * Math.Cos(y) - Math.Sin(y);
         }
         #endregion
 
@@ -291,24 +292,24 @@ namespace MastersThesis {
 
 
         private void GreedyTriangulation() {
-            if (this._applicationState == ApplicationStateType.MeshRefinement) {
+            if (_applicationState == ApplicationStateType.MeshRefinement) {
                 MessageBox.Show("Perform node generation before Greedy triangulation.", "Information",
                     MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
                 return;
             }
-            this._applicationState = ApplicationStateType.GreedyTriangulation;
-            this._animationCounter = 0;
-            this._triangulation.EdgeList = new List<PlanarObjectStore.Edge>();
-            this._triangulation.AnimationList = new List<PlanarObjectStore.TweenAnimation>();
+            _applicationState = ApplicationStateType.GreedyTriangulation;
+            _animationCounter = 0;
+            _triangulation.EdgeList = new List<Edge>();
+            _triangulation.AnimationList = new List<TweenAnimation>();
 
-            List<PlanarObjectStore.Edge> tempEdgeList = new List<PlanarObjectStore.Edge>();
-            List<PlanarObjectStore.TweenAnimation> tempTrackerList = new List<PlanarObjectStore.TweenAnimation>();
+            List<Edge> tempEdgeList = new List<Edge>();
+            List<TweenAnimation> tempTrackerList = new List<TweenAnimation>();
 
-            (new Triangulation()).GreedyTriangulationStart(this._triangulation.NodeList, ref tempEdgeList, ref tempTrackerList);
+            (new Triangulation()).GreedyTriangulationStart(_triangulation.NodeList, ref tempEdgeList, ref tempTrackerList);
 
-            this._triangulation.EdgeList = tempEdgeList;
-            this._triangulation.AnimationList = tempTrackerList;
-            this.pictureBox_mainPic.Refresh();
+            _triangulation.EdgeList = tempEdgeList;
+            _triangulation.AnimationList = tempTrackerList;
+            pictureBox_mainPic.Refresh();
 #warning w1: remove logger            
             int nLC = _triangulation.NodeList.Count;
             int eLC = _triangulation.EdgeList.Count;
@@ -316,27 +317,27 @@ namespace MastersThesis {
             Debug.WriteLine($"GreedyTriangulation:\tnodeListCount: {nLC}\tedgeListCount: {eLC}\ttriangleListCount: {tLC}\tidentity (n-e+t=1): {nLC - eLC + tLC == 1}");
         }
         private void DelaunayTriangulation() {
-            if (this._applicationState == ApplicationStateType.MeshRefinement) {
+            if (_applicationState == ApplicationStateType.MeshRefinement) {
                 MessageBox.Show("Perform node generation before Delaunay triangulation.", "Information",
                     MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
                 return;
             }
-            this._applicationState = ApplicationStateType.DelaunayTriangulation;
-            this._animationCounter = 0;
-            this._triangulation.EdgeList = new List<PlanarObjectStore.Edge>();
-            this._triangulation.AnimationList = new List<PlanarObjectStore.TweenAnimation>();
+            _applicationState = ApplicationStateType.DelaunayTriangulation;
+            _animationCounter = 0;
+            _triangulation.EdgeList = new List<Edge>();
+            _triangulation.AnimationList = new List<TweenAnimation>();
 
-            List<PlanarObjectStore.Edge> tempEdgeList = new List<PlanarObjectStore.Edge>();
-            List<PlanarObjectStore.Triangle> tempTriangleList = new List<PlanarObjectStore.Triangle>();
-            List<PlanarObjectStore.TweenAnimation> tempTrackerList = new List<PlanarObjectStore.TweenAnimation>();
+            List<Edge> tempEdgeList = new List<Edge>();
+            List<Triangle> tempTriangleList = new List<Triangle>();
+            List<TweenAnimation> tempTrackerList = new List<TweenAnimation>();
 
-            (new Triangulation()).DelaunayTriangulationStart(this._triangulation.NodeList, ref tempEdgeList, ref tempTriangleList, ref tempTrackerList,
-                                                             ref this._nodeStoreList, ref this._edgeStoreList, ref this._triangleStoreList);
+            (new Triangulation()).DelaunayTriangulationStart(_triangulation.NodeList, ref tempEdgeList, ref tempTriangleList, ref tempTrackerList,
+                                                             ref _nodeStoreList, ref _edgeStoreList, ref _triangleStoreList);
 
-            this._triangulation.EdgeList = tempEdgeList;
-            this._triangulation.TriangleList = tempTriangleList;
-            this._triangulation.AnimationList = tempTrackerList;
-            this.pictureBox_mainPic.Refresh();
+            _triangulation.EdgeList = tempEdgeList;
+            _triangulation.TriangleList = tempTriangleList;
+            _triangulation.AnimationList = tempTrackerList;
+            pictureBox_mainPic.Refresh();
 #warning w1: remove logger            
             int nLC = _triangulation.NodeList.Count;
             int eLC = _triangulation.EdgeList.Count;
@@ -344,34 +345,44 @@ namespace MastersThesis {
             Debug.WriteLine($"DelaunayTriangulation:\tnodeListCount: {nLC}\tedgeListCount: {eLC}\ttriangleListCount: {tLC}\tidentity (n-e+t=1): {nLC - eLC + tLC == 1}");
         }
         private void MeshRefinement() {
-            if (this._applicationState != ApplicationStateType.DelaunayTriangulation) {
+            if (_applicationState != ApplicationStateType.DelaunayTriangulation) {
                 MessageBox.Show("Perform Delaunay triangulation before the mesh refinement method.", "Information",
                     MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
                 return;
             }
-            this._applicationState = ApplicationStateType.MeshRefinement;
-            this._meshRefinementCoeff = (int)this.numericUpDown_meshRefinementCoeff.Value;
-            this._animationCounter = 0;
+            _applicationState = ApplicationStateType.MeshRefinement;
+            _meshRefinementCoeff = (int)numericUpDown_meshRefinementCoeff.Value;
+            _animationCounter = 0;
 
-            List<PlanarObjectStore.Node> tempNodeList = new List<PlanarObjectStore.Node>();
-            List<PlanarObjectStore.Edge> tempEdgeList = new List<PlanarObjectStore.Edge>();
-            List<PlanarObjectStore.Triangle> tempTriangleList = new List<PlanarObjectStore.Triangle>();
-            List<PlanarObjectStore.TweenAnimation> tempTrackerList = new List<PlanarObjectStore.TweenAnimation>();
-            PlanarObjectStore.TweenAnimation tempTracker = this._triangulation.AnimationList.Last();
+            _parentTriangulation = new PlanarObjectStore();
+            _parentTriangulation.NodeList = _triangulation.NodeList.ToList();
+            _parentTriangulation.EdgeList = _triangulation.EdgeList.ToList();
+            _parentTriangulation.TriangleList = _triangulation.TriangleList.ToList();
 
-            (new Triangulation()).MeshRefinementStart(ref tempNodeList, ref tempEdgeList, ref tempTriangleList, ref tempTrackerList, tempTracker, this._decimalPlaces,
-                                                      this._meshRefinementCoeff, this._nodeStoreList, this._edgeStoreList, this._triangleStoreList);
 
-            this._triangulation.NodeList = tempNodeList;
-            this._triangulation.EdgeList = tempEdgeList;
-            this._triangulation.TriangleList = tempTriangleList;
-            this._triangulation.AnimationList = tempTrackerList;
-            this.pictureBox_mainPic.Refresh();
+            List<Node> tempNodeList = new List<Node>();
+            List<Edge> tempEdgeList = new List<Edge>();
+            List<Triangle> tempTriangleList = new List<Triangle>();
+            List<TweenAnimation> tempTrackerList = new List<TweenAnimation>();
+            TweenAnimation tempTracker = _triangulation.AnimationList.Last();
+
+            (new Triangulation()).MeshRefinementStart(ref tempNodeList, ref tempEdgeList, ref tempTriangleList, ref tempTrackerList, tempTracker, _decimalPlaces,
+                                                      _meshRefinementCoeff, _nodeStoreList, _edgeStoreList, _triangleStoreList);
+
+            _triangulation.NodeList = tempNodeList;
+            _triangulation.EdgeList = tempEdgeList;
+            _triangulation.TriangleList = tempTriangleList;
+            _triangulation.AnimationList = tempTrackerList;
+            pictureBox_mainPic.Refresh();
 #warning w1: remove logger            
             int nLC = _triangulation.NodeList.Count;
             int eLC = _triangulation.EdgeList.Count;
             int tLC = _triangulation.TriangleList.Count;
             Debug.WriteLine($"MeshRefinement:\tnodeListCount: {nLC}\tedgeListCount: {eLC}\ttriangleListCount: {tLC}\tidentity (n-e+t=1): {nLC - eLC + tLC == 1}");
+            int nLC_p = _parentTriangulation.NodeList.Count;
+            int eLC_p = _parentTriangulation.EdgeList.Count;
+            int tLC_p = _parentTriangulation.TriangleList.Count;
+            Debug.WriteLine($"MeshRefinement for parent tr:\tnodeListCount: {nLC_p}\tedgeListCount: {eLC_p}\ttriangleListCount: {tLC_p}\tidentity (n-e+t=1): {nLC_p - eLC_p + tLC_p == 1}");
         }
 
 
@@ -541,21 +552,52 @@ namespace MastersThesis {
             double h_oX = (_xAxisEnd - _xAxisStart) / (nodeNum_oX - 1);
             double h_oY = (_yAxisEnd - _yAxisStart) / (nodeNum_oY - 1);
 
+            double[] errorTriag = new double[nodeNum_oX * nodeNum_oY];
+            double[] errorParTriag = new double[nodeNum_oX * nodeNum_oY];
+            double[] zVal_parent = new double[nodeNum_oX * nodeNum_oY];
+
             double[] xVal = new double[nodeNum_oX * nodeNum_oY];
             double[] yVal = new double[nodeNum_oX * nodeNum_oY];
             double[] zVal = new double[nodeNum_oX * nodeNum_oY];
             double[] exactVal = new double[nodeNum_oX * nodeNum_oY];
             int index = 0;
 
-            for (double j = 0; j < nodeNum_oX; j++) {
-                for (double k = 0; k < nodeNum_oY; k++) {
-                    xVal[index] = _xAxisStart + j * h_oX;
-                    yVal[index] = _yAxisStart + k * h_oY;
-                    zVal[index] = GFunction(xVal[index], yVal[index], planarObjectStore.TriangleList);
-                    exactVal[index] = ExactSolution(xVal[index], yVal[index]);
-                    index++;
+            if (_applicationState == ApplicationStateType.DelaunayTriangulation) {
+
+                for (double j = 0; j < nodeNum_oX; j++) {
+                    for (double k = 0; k < nodeNum_oY; k++) {
+                        xVal[index] = _xAxisStart + j * h_oX;
+                        yVal[index] = _yAxisStart + k * h_oY;
+                        zVal[index] = GFunction(xVal[index], yVal[index], planarObjectStore.TriangleList);
+                        exactVal[index] = ExactSolution(xVal[index], yVal[index]);
+                        errorTriag[index] = Math.Abs(exactVal[index]- zVal[index]);
+                        index++;
+                    }
                 }
+
+                DebugLog("Info", $"GnuPlot: domain=[{_xAxisStart};{_xAxisEnd}]x[{_yAxisStart};{_yAxisEnd}]; h_x={h_oX}; h_y={h_oY}\n" +
+                         $"Del tr: max approx = {errorTriag.Max()}\n");
+
             }
+            if (_applicationState == ApplicationStateType.MeshRefinement) {
+
+                for (double j = 0; j < nodeNum_oX; j++) {
+                    for (double k = 0; k < nodeNum_oY; k++) {
+                        xVal[index] = _xAxisStart + j * h_oX;
+                        yVal[index] = _yAxisStart + k * h_oY;
+                        zVal[index] = GFunction(xVal[index], yVal[index], planarObjectStore.TriangleList);
+                        zVal_parent[index] = GFunction(xVal[index], yVal[index], _parentTriangulation.TriangleList);
+                        exactVal[index] = ExactSolution(xVal[index], yVal[index]);
+                        errorTriag[index] = Math.Abs(exactVal[index] - zVal[index]);
+                        errorParTriag[index] = Math.Abs(exactVal[index] - zVal_parent[index]);
+                        index++;
+                    }
+                }
+                DebugLog("Info", $"GnuPlot: domain=[{_xAxisStart};{_xAxisEnd}]x[{_yAxisStart};{_yAxisEnd}]; h_x={h_oX}; h_y={h_oY}\n" +
+                         $"Parent Del tr: max approx = {errorParTriag.Max()}\n" +
+                         $"Mesh Ref tr: max approx = {errorTriag.Max()}\n");
+            }
+
 
             int numC = planarObjectStore.NodeList.Count;
             double[] xValQ = new double[numC];
@@ -568,9 +610,12 @@ namespace MastersThesis {
             }
 
 
+            
+
 
             GnuPlot.Set("dgrid3d 50,50, qnorm 2");
-            GnuPlot.Set("title \"Approximation\"", "xlabel \"X-Axis\"", "ylabel \"Y-Axis\"", "zlabel \"Z-Axis\"");
+            //GnuPlot.Set("title \"Approximation\"", "xlabel \"X-Axis\"", "ylabel \"Y-Axis\"", "zlabel \"Z-Axis\"");
+            GnuPlot.Set("xlabel \"X-Axis\"", "ylabel \"Y-Axis\"", "zlabel \"Z-Axis\"");
 
             //GnuPlot.Set("contour base");
             //GnuPlot.Set("hidden3d");
@@ -588,7 +633,7 @@ namespace MastersThesis {
             GnuPlot.SPlot(xVal, yVal, exactVal, "with pm3d title \"f(x,y)\"");
 
             // по изначальным узлам
-            GnuPlot.SPlot(xValQ, yValQ, fValQ, "title \"set of points\" lc rgb \"blue\"");
+            GnuPlot.SPlot(xValQ, yValQ, fValQ, "title \"set of points A\" lc rgb \"blue\"");
 
             // интеполяция
             GnuPlot.SPlot(xVal, yVal, zVal, "with pm3d title \"G(A,x,y)\"");
@@ -596,6 +641,16 @@ namespace MastersThesis {
             //GnuPlot.SPlot(xVal, yVal, zVal, $"title \"G(A,x,y)\" with linespoints pt 7");
 
             GnuPlot.SPlot(xVal, yVal, zVal, "title \"G(A,x,y)\" lc rgb  \"red\"");
+
+            if (_applicationState == ApplicationStateType.MeshRefinement) {
+
+                // интеполяция
+                GnuPlot.SPlot(xVal, yVal, zVal_parent, "with pm3d title \"G(A,x,y)_parent\"");
+
+                //GnuPlot.SPlot(xVal, yVal, zVal, $"title \"G(A,x,y)\" with linespoints pt 7");
+
+                GnuPlot.SPlot(xVal, yVal, zVal_parent, "title \"G(A,x,y)_parent\" lc rgb  \"red\"");
+            }
 
         }
 
