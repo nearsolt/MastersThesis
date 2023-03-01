@@ -1,19 +1,126 @@
-﻿using static MastersThesis.MainForm.PlanarObjectStore;
+﻿using System.Diagnostics;
+using static MastersThesis.MainForm.PlanarObjectStore;
 using static MastersThesis.Triangulation.MeshStore;
 
 namespace MastersThesis {
     public partial class MainForm : Form {
-        
+
+        #region Private Class Variables
+        /// <summary>
+        /// Cостояния приложения
+        /// </summary>
+        private enum ApplicationStateType : int {
+            /// <summary>
+            /// Генерация узлов
+            /// </summary>
+            NodeGeneration = 0,
+            /// <summary>
+            /// Жадная триангуляция
+            /// </summary>
+            GreedyTriangulation = 1,
+            /// <summary>
+            /// Триангуляция Делоне
+            /// </summary>
+            DelaunayTriangulation = 2,
+            /// <summary>
+            /// Триангуляция методом измельчения
+            /// </summary>
+            MeshRefinement = 3,
+            /// <summary>
+            /// Триангуляция Делоне, по которой была построена триангуляция методом измельчения
+            /// </summary>
+            ParentDelaunayTriangulation = 4
+        }
+        /// <summary>
+        /// Текущиее состояние приложения
+        /// </summary>
+        private ApplicationStateType _applicationState = ApplicationStateType.NodeGeneration;
+        /// <summary>
+        /// Размеры используемой области в pictureBox_mainPic
+        /// </summary>
+        private SizeF _canvasSize;
+        /// <summary>
+        /// Точка начала координат в pictureBox_mainPic
+        /// </summary>
+        private PointF _canvasOrgin;
+        /// <summary>
+        /// Начало диапазона по оси Ox
+        /// </summary>
+        private double _xAxisStart;
+        /// <summary>
+        /// Конец диапазона по оси Ox
+        /// </summary>
+        private double _xAxisEnd;
+        /// <summary>
+        /// Начало диапазона по оси Oy
+        /// </summary>
+        private double _yAxisStart;
+        /// <summary>
+        /// Конец диапазона по оси Oy
+        /// </summary>
+        private double _yAxisEnd;
+        /// <summary>
+        /// Коэффициэнт растяжения для ширины в pictureBox_mainPic
+        /// </summary>
+        private double _widthScalingCoeff;
+        /// <summary>
+        /// Коэффициэнт растяжения для высоты в pictureBox_mainPic
+        /// </summary>
+        private double _heightScalingCoeff;
+        /// <summary>
+        /// Счетчик для анимации
+        /// </summary>
+        private int _animationCounter;
+        /// <summary>
+        /// Коэффициент измельчения q
+        /// </summary>
+        private int _meshRefinementCoeff = 3;
+        /// <summary>
+        /// Количество знаков после запятой при вычислении координат внутренних узлов в методе измельчения
+        /// </summary>
+        private readonly int _decimalPlaces = 3;
+        /// <summary>
+        /// Интервал для таймера анимации (мс)
+        /// </summary>
+        private readonly int _timerInterval = 1000;
+        /// <summary>
+        /// Текущая триангуляция (PlanarObjectStore)
+        /// </summary>
+        private PlanarObjectStore _triangulation = null!;
+        /// <summary>
+        /// Триангуляция Делоне, по которой была построена триангуляция методом измельчения (PlanarObjectStore)
+        /// </summary>
+        private PlanarObjectStore _parentTriangulation = null!;
+        /// <summary>
+        /// Список узлов (NodeStore)
+        /// </summary>
+        private List<NodeStore> _nodeStoreList = null!;
+        /// <summary>
+        /// Список ребер (EdgeStore)
+        /// </summary>
+        private List<EdgeStore> _edgeStoreList = null!;
+        /// <summary>
+        /// Список треугольников (TriangleStore)
+        /// </summary>
+        private List<TriangleStore> _triangleStoreList = null!;
+        #endregion
+
+        #region Exact Solution
+        private double ExactSolution(double x, double y) {
+            return Math.Sin(x) * y + x * Math.Cos(y) + x + y;
+        }
+        #endregion
+
+        #region Constructor & Event Handlers
         public MainForm() {
             InitializeComponent();
         }
 
-        #region Event Handlers
         private void MainForm_Load(object sender, EventArgs e) {
             GenerateRandomNodes();
         }
         private void timer_animationTimer_Tick(object sender, EventArgs e) {
-            if (_animationCounter == _planarObjectStore.AnimationList.Count - 1) {
+            if (_animationCounter == _triangulation.AnimationList.Count - 1) {
                 _animationCounter = 0;
             } else {
                 _animationCounter++;
@@ -27,23 +134,21 @@ namespace MastersThesis {
 
             switch (_applicationState) {
                 case ApplicationStateType.NodeGeneration:
-                    _planarObjectStore.DrawNodeList(ref graphics, checkBox_labelVisibility.Checked, _widthScalingCoeff, _heightScalingCoeff);
+                    _triangulation.DrawNodeList(ref graphics, checkBox_labelVisibility.Checked, _widthScalingCoeff, _heightScalingCoeff);
                     break;
                 case ApplicationStateType.GreedyTriangulation:
-                    _planarObjectStore.DrawTriangulation(ref graphics, checkBox_labelVisibility.Checked, checkBox_tweenAnimation.Checked, ref _animationCounter,
+                    _triangulation.DrawTriangulation(ref graphics, checkBox_labelVisibility.Checked, checkBox_tweenAnimation.Checked, ref _animationCounter,
                                                          _widthScalingCoeff, _heightScalingCoeff);
                     break;
                 case ApplicationStateType.DelaunayTriangulation:
-                    _planarObjectStore.DrawTriangulation(ref graphics, checkBox_labelVisibility.Checked, checkBox_tweenAnimation.Checked, ref _animationCounter,
+                    _triangulation.DrawTriangulation(ref graphics, checkBox_labelVisibility.Checked, checkBox_tweenAnimation.Checked, ref _animationCounter,
                                                          checkBox_innerTriangleVisibility.Checked, checkBox_circumcircleVisibility.Checked, _widthScalingCoeff, _heightScalingCoeff);
                     break;
                 case ApplicationStateType.MeshRefinement:
-                    _planarObjectStore.DrawTriangulation(ref graphics, checkBox_labelVisibility.Checked, checkBox_tweenAnimation.Checked, ref _animationCounter,
+                    _triangulation.DrawTriangulation(ref graphics, checkBox_labelVisibility.Checked, checkBox_tweenAnimation.Checked, ref _animationCounter,
                                                          checkBox_innerTriangleVisibility.Checked, _widthScalingCoeff, _heightScalingCoeff);
                     break;
                 case ApplicationStateType.ParentDelaunayTriangulation:
-                    _parentPlanarObjectStore.DrawTriangulation(ref graphics, checkBox_labelVisibility.Checked, checkBox_tweenAnimation.Checked, ref _animationCounter,
-                                                         checkBox_innerTriangleVisibility.Checked, checkBox_circumcircleVisibility.Checked, _widthScalingCoeff, _heightScalingCoeff);
                     break;
             }
         }
@@ -98,7 +203,7 @@ namespace MastersThesis {
             MeshRefinement();
         }
         #endregion
-        
+
         #endregion
 
         #region Methods
@@ -153,7 +258,7 @@ namespace MastersThesis {
             _edgeStoreList = new List<EdgeStore>();
             _triangleStoreList = new List<TriangleStore>();
 
-            _planarObjectStore = new PlanarObjectStore();
+            _triangulation = new PlanarObjectStore();
             List<Node> tempNodeList = new List<Node>();
 
             Random random = new Random();
@@ -177,12 +282,12 @@ namespace MastersThesis {
                     tempNodeList.Add(new Node(j, tmpXCoord, tmpYCoord));
                 }
             }
-            _planarObjectStore.NodeList = tempNodeList;
+            _triangulation.NodeList = tempNodeList;
             pictureBox_mainPic.Refresh();
         }
         #endregion
 
-       
+        
 
 
         private void GreedyTriangulation() {
@@ -193,17 +298,22 @@ namespace MastersThesis {
             }
             this._applicationState = ApplicationStateType.GreedyTriangulation;
             this._animationCounter = 0;
-            this._planarObjectStore.EdgeList = new List<PlanarObjectStore.Edge>();
-            this._planarObjectStore.AnimationList = new List<PlanarObjectStore.TweenAnimation>();
+            this._triangulation.EdgeList = new List<PlanarObjectStore.Edge>();
+            this._triangulation.AnimationList = new List<PlanarObjectStore.TweenAnimation>();
 
             List<PlanarObjectStore.Edge> tempEdgeList = new List<PlanarObjectStore.Edge>();
             List<PlanarObjectStore.TweenAnimation> tempTrackerList = new List<PlanarObjectStore.TweenAnimation>();
 
-            (new Triangulation()).GreedyTriangulationStart(this._planarObjectStore.NodeList, ref tempEdgeList, ref tempTrackerList);
+            (new Triangulation()).GreedyTriangulationStart(this._triangulation.NodeList, ref tempEdgeList, ref tempTrackerList);
 
-            this._planarObjectStore.EdgeList = tempEdgeList;
-            this._planarObjectStore.AnimationList = tempTrackerList;
+            this._triangulation.EdgeList = tempEdgeList;
+            this._triangulation.AnimationList = tempTrackerList;
             this.pictureBox_mainPic.Refresh();
+#warning w1: remove logger            
+            int nLC = _triangulation.NodeList.Count;
+            int eLC = _triangulation.EdgeList.Count;
+            int tLC = _triangulation.TriangleList.Count;
+            Debug.WriteLine($"GreedyTriangulation:\tnodeListCount: {nLC}\tedgeListCount: {eLC}\ttriangleListCount: {tLC}\tidentity (n-e+t=1): {nLC - eLC + tLC == 1}");
         }
         private void DelaunayTriangulation() {
             if (this._applicationState == ApplicationStateType.MeshRefinement) {
@@ -213,20 +323,25 @@ namespace MastersThesis {
             }
             this._applicationState = ApplicationStateType.DelaunayTriangulation;
             this._animationCounter = 0;
-            this._planarObjectStore.EdgeList = new List<PlanarObjectStore.Edge>();
-            this._planarObjectStore.AnimationList = new List<PlanarObjectStore.TweenAnimation>();
+            this._triangulation.EdgeList = new List<PlanarObjectStore.Edge>();
+            this._triangulation.AnimationList = new List<PlanarObjectStore.TweenAnimation>();
 
             List<PlanarObjectStore.Edge> tempEdgeList = new List<PlanarObjectStore.Edge>();
             List<PlanarObjectStore.Triangle> tempTriangleList = new List<PlanarObjectStore.Triangle>();
             List<PlanarObjectStore.TweenAnimation> tempTrackerList = new List<PlanarObjectStore.TweenAnimation>();
 
-            (new Triangulation()).DelaunayTriangulationStart(this._planarObjectStore.NodeList, ref tempEdgeList, ref tempTriangleList, ref tempTrackerList,
+            (new Triangulation()).DelaunayTriangulationStart(this._triangulation.NodeList, ref tempEdgeList, ref tempTriangleList, ref tempTrackerList,
                                                              ref this._nodeStoreList, ref this._edgeStoreList, ref this._triangleStoreList);
 
-            this._planarObjectStore.EdgeList = tempEdgeList;
-            this._planarObjectStore.TriangleList = tempTriangleList;
-            this._planarObjectStore.AnimationList = tempTrackerList;
+            this._triangulation.EdgeList = tempEdgeList;
+            this._triangulation.TriangleList = tempTriangleList;
+            this._triangulation.AnimationList = tempTrackerList;
             this.pictureBox_mainPic.Refresh();
+#warning w1: remove logger            
+            int nLC = _triangulation.NodeList.Count;
+            int eLC = _triangulation.EdgeList.Count;
+            int tLC = _triangulation.TriangleList.Count;
+            Debug.WriteLine($"DelaunayTriangulation:\tnodeListCount: {nLC}\tedgeListCount: {eLC}\ttriangleListCount: {tLC}\tidentity (n-e+t=1): {nLC - eLC + tLC == 1}");
         }
         private void MeshRefinement() {
             if (this._applicationState != ApplicationStateType.DelaunayTriangulation) {
@@ -242,16 +357,21 @@ namespace MastersThesis {
             List<PlanarObjectStore.Edge> tempEdgeList = new List<PlanarObjectStore.Edge>();
             List<PlanarObjectStore.Triangle> tempTriangleList = new List<PlanarObjectStore.Triangle>();
             List<PlanarObjectStore.TweenAnimation> tempTrackerList = new List<PlanarObjectStore.TweenAnimation>();
-            PlanarObjectStore.TweenAnimation tempTracker = this._planarObjectStore.AnimationList.Last();
+            PlanarObjectStore.TweenAnimation tempTracker = this._triangulation.AnimationList.Last();
 
             (new Triangulation()).MeshRefinementStart(ref tempNodeList, ref tempEdgeList, ref tempTriangleList, ref tempTrackerList, tempTracker, this._decimalPlaces,
                                                       this._meshRefinementCoeff, this._nodeStoreList, this._edgeStoreList, this._triangleStoreList);
 
-            this._planarObjectStore.NodeList = tempNodeList;
-            this._planarObjectStore.EdgeList = tempEdgeList;
-            this._planarObjectStore.TriangleList = tempTriangleList;
-            this._planarObjectStore.AnimationList = tempTrackerList;
+            this._triangulation.NodeList = tempNodeList;
+            this._triangulation.EdgeList = tempEdgeList;
+            this._triangulation.TriangleList = tempTriangleList;
+            this._triangulation.AnimationList = tempTrackerList;
             this.pictureBox_mainPic.Refresh();
+#warning w1: remove logger            
+            int nLC = _triangulation.NodeList.Count;
+            int eLC = _triangulation.EdgeList.Count;
+            int tLC = _triangulation.TriangleList.Count;
+            Debug.WriteLine($"MeshRefinement:\tnodeListCount: {nLC}\tedgeListCount: {eLC}\ttriangleListCount: {tLC}\tidentity (n-e+t=1): {nLC - eLC + tLC == 1}");
         }
 
 
@@ -259,27 +379,12 @@ namespace MastersThesis {
 
         #region Test Buttons & Debug
 #warning To do: remove from the final version with control (button_test visible = false)
+        internal static void DebugLog(string type, string message) {
+            File.AppendAllText(@"D:\mechmath\.Master's Thesis\logger.log", $"{DateTime.Now} {type}: {message}\n");
+        }
+
         private void button_test_Click(object sender, EventArgs e) {
-            //MessageBox.Show($"Count temp list {nameof(this._planarObjectStore.NodeList)}: {this._planarObjectStore.NodeList.Count}\n" +
-            //                $"Count temp list {nameof(this._planarObjectStore.EdgeList)}: {this._planarObjectStore.EdgeList.Count}\n" +
-            //                $"Count temp list {nameof(this._planarObjectStore.TriangleList)}: {this._planarObjectStore.TriangleList.Count}\n" +
-            //                $"Count temp list {nameof(this._planarObjectStore.AnimationList)}: {this._planarObjectStore.AnimationList.Count}\n" +
-            //                $"Count diff nodes: {this._planarObjectStore.NodeList.DistinctBy(obj => new { obj.XCoordinate, obj.YCoordinate }).Count()}\n"
-            //                //+ $"All nodes\n{string.Join("\n", this._planarObjectStore.NodeList.OrderBy(obj => obj.XCoordinate).Select(obj => $"<{obj.NodeID}; ({obj.XCoordinate}; {obj.YCoordinate})>"))}\n"
-            //                , "Information", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
 
-            int nLC = _planarObjectStore.NodeList.Count;
-            int eLC = _planarObjectStore.EdgeList.Count;
-            int tLC = _planarObjectStore.TriangleList.Count;
-
-            ApproxFunction((int)numericUpDown_xAxisNum.Value, (int)numericUpDown_yAxisNum.Value, _planarObjectStore);
-
-            MessageBox.Show($"nodeListCount: {nLC}\nedgeListCount: {eLC}\ntriangleListCount: {tLC}\n" +
-                            $"identity (n-e+t=1): {nLC - eLC + tLC == 1}\n" +
-                            $"количество разбиениий по оси х = {(int)numericUpDown_xAxisNum.Value - 1}, по оси  y= {(int)numericUpDown_yAxisNum.Value - 1}"
-                , "Information", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
-
-            
         }
         #endregion
 
@@ -433,8 +538,6 @@ namespace MastersThesis {
 
         private void ApproxFunction(int nodeNum_oX, int nodeNum_oY, PlanarObjectStore planarObjectStore) {
 
-            
-
             double h_oX = (_xAxisEnd - _xAxisStart) / (nodeNum_oX - 1);
             double h_oY = (_yAxisEnd - _yAxisStart) / (nodeNum_oY - 1);
 
@@ -443,7 +546,7 @@ namespace MastersThesis {
             double[] zVal = new double[nodeNum_oX * nodeNum_oY];
             double[] exactVal = new double[nodeNum_oX * nodeNum_oY];
             int index = 0;
-          
+
             for (double j = 0; j < nodeNum_oX; j++) {
                 for (double k = 0; k < nodeNum_oY; k++) {
                     xVal[index] = _xAxisStart + j * h_oX;
@@ -466,30 +569,41 @@ namespace MastersThesis {
 
 
 
-            GnuPlot.Set("dgrid3d 40,40,2");
-            GnuPlot.WriteLine($"set xrange[{_xAxisStart}:{_xAxisEnd}]");
-            GnuPlot.WriteLine($"set yrange[{_yAxisStart}:{_yAxisEnd}]");
-            
+            GnuPlot.Set("dgrid3d 50,50, qnorm 2");
+            GnuPlot.Set("title \"Approximation\"", "xlabel \"X-Axis\"", "ylabel \"Y-Axis\"", "zlabel \"Z-Axis\"");
+
+            //GnuPlot.Set("contour base");
+            //GnuPlot.Set("hidden3d");
+            //GnuPlot.Set("palette grey");
+
+            //GnuPlot.WriteLine($"set xrange[{_xAxisStart}:{_xAxisEnd}]");
+            //GnuPlot.WriteLine($"set yrange[{_yAxisStart}:{_yAxisEnd}]");
+            //GnuPlot.WriteLine("pause -1 'Please press any key'");
+
             GnuPlot.HoldOn();
 
+            // точная 
+            GnuPlot.SPlot(xVal, yVal, exactVal, "title \"f(x,y)\" lc rgb \"purple\"");
 
-            
+            GnuPlot.SPlot(xVal, yVal, exactVal, "with pm3d title \"f(x,y)\"");
 
             // по изначальным узлам
-            GnuPlot.SPlot(xValQ, yValQ, fValQ);
-           
-            // интеполяция
-            GnuPlot.SPlot(xVal, yVal, zVal);
+            GnuPlot.SPlot(xValQ, yValQ, fValQ, "title \"set of points\" lc rgb \"blue\"");
 
-            // точная 
-            //GnuPlot.SPlot(xVal, yVal, exactVal, "with pm3d");
+            // интеполяция
+            GnuPlot.SPlot(xVal, yVal, zVal, "with pm3d title \"G(A,x,y)\"");
+
+            //GnuPlot.SPlot(xVal, yVal, zVal, $"title \"G(A,x,y)\" with linespoints pt 7");
+
+            GnuPlot.SPlot(xVal, yVal, zVal, "title \"G(A,x,y)\" lc rgb  \"red\"");
+
         }
 
 
         #endregion
 
 
-        
+
 
 
 
@@ -500,11 +614,9 @@ namespace MastersThesis {
         #endregion
 
         private void button_interpolation_Click(object sender, EventArgs e) {
-
+            ApproxFunction((int)numericUpDown_xAxisNum.Value, (int)numericUpDown_yAxisNum.Value, _triangulation);
         }
-        private void button_parentDelaunayTriangulation_Click(object sender, EventArgs e) {
-
-        }
+        
         private void checkBox_setDomainOfDefinition_CheckedChanged(object sender, EventArgs e) {
 
         }
@@ -512,7 +624,6 @@ namespace MastersThesis {
         #region Useless
 #warning Useless
         private void pictureBox_mainPic_SizeChanged(object sender, EventArgs e) {
-#warning w0: commit
             //InitializeCanvasSize();
         }
         private void numericUpDown_xAxisStart_ValueChanged(object sender, EventArgs e) {
@@ -532,6 +643,6 @@ namespace MastersThesis {
         }
         #endregion
 
-        
+
     }
 }

@@ -14,10 +14,13 @@ namespace MastersThesis {
 
             /* 
              * ToDo: 
-             *      MainFormExtension.cs
+             *      PlanarObjectStore.cs
+             *                          #warning w1
+             *                          
+             *      MainForm.cs                   
              *                          ExactSolution
              *                          #warning w0
-             *                          #warning w1
+             *                          
              *                          
             */
 

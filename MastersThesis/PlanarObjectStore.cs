@@ -1,115 +1,7 @@
-﻿using static MastersThesis.Triangulation.MeshStore;
-
-namespace MastersThesis {
+﻿namespace MastersThesis {
     partial class MainForm {
 
-        #region Global Variables
-        /// <summary>
-        /// Cостояния приложения
-        /// </summary>
-        private enum ApplicationStateType : int {
-            /// <summary>
-            /// Генерация узлов
-            /// </summary>
-            NodeGeneration = 0,
-            /// <summary>
-            /// Жадная триангуляция
-            /// </summary>
-            GreedyTriangulation = 1,
-            /// <summary>
-            /// Триангуляция Делоне
-            /// </summary>
-            DelaunayTriangulation = 2,
-            /// <summary>
-            /// Триангуляция методом измельчения
-            /// </summary>
-            MeshRefinement = 3,
-            /// <summary>
-            /// Исходная триангуляция Делоне
-            /// </summary>
-            ParentDelaunayTriangulation = 4
-        }
-        /// <summary>
-        /// Текущиее состояние приложения
-        /// </summary>
-        private ApplicationStateType _applicationState = ApplicationStateType.NodeGeneration;
-        /// <summary>
-        /// Размеры используемой области в pictureBox_mainPic
-        /// </summary>
-        private SizeF _canvasSize;
-        /// <summary>
-        /// Точка начала координат в pictureBox_mainPic
-        /// </summary>
-        private PointF _canvasOrgin;
-        /// <summary>
-        /// Начало интервала по оси Ox
-        /// </summary>
-        private double _xAxisStart;
-        /// <summary>
-        /// Конец интервала по оси Ox
-        /// </summary>
-        private double _xAxisEnd;
-        /// <summary>
-        /// Начало интервала по оси Oy
-        /// </summary>
-        private double _yAxisStart;
-        /// <summary>
-        /// Конец интервала по оси Oy
-        /// </summary>
-        private double _yAxisEnd;
-        /// <summary>
-        /// Коэффициэнт растяжения ширины в pictureBox_mainPic
-        /// </summary>
-        private double _widthScalingCoeff;
-        /// <summary>
-        /// Коэффициэнт растяжения высоты в pictureBox_mainPic
-        /// </summary>
-        private double _heightScalingCoeff;
-        /// <summary>
-        /// Счетчик для анимации
-        /// </summary>
-        private int _animationCounter;
-        /// <summary>
-        /// Коэффициент измельчения q
-        /// </summary>
-        private int _meshRefinementCoeff = 3;
-        /// <summary>
-        /// Количество знаков после запятой для координат внутренних узлов при их вычислении в методе измельчения
-        /// </summary>
-        private readonly int _decimalPlaces = 3;
-        /// <summary>
-        /// Интервал для таймера анимации (мс)
-        /// </summary>
-        private readonly int _timerInterval = 1000;
-        /// <summary>
-        /// Текущая триангуляция (PlanarObjectStore)
-        /// </summary>
-        private PlanarObjectStore _planarObjectStore = null!;
-        /// <summary>
-        /// Триангуляция Делоне, по которой была построена триангуляция методом измельчения (PlanarObjectStore)
-        /// </summary>
-        private PlanarObjectStore _parentPlanarObjectStore = null!;
-        /// <summary>
-        /// Список узлов (NodeStore)
-        /// </summary>
-        private List<NodeStore> _nodeStoreList = null!;
-        /// <summary>
-        /// Список ребер (EdgeStore)
-        /// </summary>
-        private List<EdgeStore> _edgeStoreList = null!;
-        /// <summary>
-        /// Список треугольников (TriangleStore)
-        /// </summary>
-        private List<TriangleStore> _triangleStoreList = null!;
-        #endregion
-
-        #region Exact Solution
-        private double ExactSolution(double x, double y) {
-            return Math.Sin(x) * y + x * Math.Cos(y) + x + y;
-        }
-        #endregion
-
-        #region Class PlanarObjectStore
+        #region Class PlanarObjectStore & Base Classes (Node, Edge, Triangle, AnimationTracker)
         internal class PlanarObjectStore {
 
             #region Private Class Variables
@@ -236,7 +128,7 @@ namespace MastersThesis {
                 }
             }
             /// <summary>
-            /// Отрисовка внутренних треугольников  и описанных окружностей в контроле PictureBox
+            /// Отрисовка внутренних треугольников и описанных окружностей в контроле PictureBox
             /// </summary>
             /// <param name="graphics">Экземпляр Graphics</param>
             /// <param name="triangleIDVisibility">Отображение ID треугольников</param>
@@ -387,7 +279,7 @@ namespace MastersThesis {
                     return _xCoordinate == other.XCoordinate && _yCoordinate == other.YCoordinate;
                 }
                 /// <summary>
-                /// Получение точки (координаты узла в формате PointF)
+                /// Получение координат узла (PointF)
                 /// </summary>
                 /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
                 /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
@@ -396,7 +288,7 @@ namespace MastersThesis {
                     return new PointF((float)(_xCoordinate * xCoordShiftCoeff), -(float)(_yCoordinate * yCoordShiftCoeff));
                 }
                 /// <summary>
-                /// Получение точки (координаты узла в формате PointF) со сдвигом относительно толщины
+                /// Получение координат узла (PointF) со сдвигом относительно толщины
                 /// </summary>
                 /// <param name="halfThickness">Половина толщины точки</param>
                 /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
@@ -586,7 +478,7 @@ namespace MastersThesis {
 
                 #region Methods
                 /// <summary>
-                /// Получение первой точки (координаты первого узла в формате PointF) со сдвигом относительно коэффициента растяжения _scalingCoeff
+                /// Получение координат первого узла (PointF) со сдвигом относительно коэффициента растяжения _scalingCoeff
                 /// </summary>
                 /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
                 /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
@@ -596,7 +488,7 @@ namespace MastersThesis {
                                       (float)(_geometricCenter.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).Y * (1 - _scalingCoeff) + _firstNode.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).Y * _scalingCoeff));
                 }
                 /// <summary>
-                /// Получение второй точки (координаты второго узла в формате PointF) со сдвигом относительно коэффициента растяжения _scalingCoeff
+                /// Получение координат второго узла (PointF) со сдвигом относительно коэффициента растяжения _scalingCoeff
                 /// </summary>
                 /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
                 /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
@@ -606,7 +498,7 @@ namespace MastersThesis {
                                       (float)(_geometricCenter.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).Y * (1 - _scalingCoeff) + _secondNode.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).Y * _scalingCoeff));
                 }
                 /// <summary>
-                /// Получение третьей точки (координаты третьего узла в формате PointF) со сдвигом относительно коэффициента растяжения _scalingCoeff
+                /// Получение координат третьего узла (PointF) со сдвигом относительно коэффициента растяжения _scalingCoeff
                 /// </summary>
                 /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
                 /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
@@ -616,7 +508,7 @@ namespace MastersThesis {
                                       (float)(_geometricCenter.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).Y * (1 - _scalingCoeff) + _thirdNode.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).Y * _scalingCoeff));
                 }
                 /// <summary>
-                /// Определение элементов для описанной окружности (нахождение центра, радиуса и вспомогательного узла _nodeForEllipse)
+                /// Определение элементов для описанной окружности: центр, радиус и вспомогательный узел _nodeForEllipse
                 /// </summary>
                 private void DefineCircumcircle() {
                     double dA = _firstNode.XCoordinate * _firstNode.XCoordinate + _firstNode.YCoordinate * _firstNode.YCoordinate;

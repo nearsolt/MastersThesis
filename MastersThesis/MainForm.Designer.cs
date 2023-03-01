@@ -30,7 +30,6 @@
             this.label_xAxisNum = new System.Windows.Forms.Label();
             this.numericUpDown_yAxisNum = new System.Windows.Forms.NumericUpDown();
             this.numericUpDown_xAxisNum = new System.Windows.Forms.NumericUpDown();
-            this.button_parentDelaunayTriangulation = new System.Windows.Forms.Button();
             this.label_yAxis = new System.Windows.Forms.Label();
             this.label_xAxis = new System.Windows.Forms.Label();
             this.button_interpolation = new System.Windows.Forms.Button();
@@ -74,7 +73,6 @@
             this.groupBox_ribbon.Controls.Add(this.label_xAxisNum);
             this.groupBox_ribbon.Controls.Add(this.numericUpDown_yAxisNum);
             this.groupBox_ribbon.Controls.Add(this.numericUpDown_xAxisNum);
-            this.groupBox_ribbon.Controls.Add(this.button_parentDelaunayTriangulation);
             this.groupBox_ribbon.Controls.Add(this.label_yAxis);
             this.groupBox_ribbon.Controls.Add(this.label_xAxis);
             this.groupBox_ribbon.Controls.Add(this.button_interpolation);
@@ -138,7 +136,7 @@
             this.numericUpDown_yAxisNum.Size = new System.Drawing.Size(55, 23);
             this.numericUpDown_yAxisNum.TabIndex = 23;
             this.numericUpDown_yAxisNum.Value = new decimal(new int[] {
-            100,
+            101,
             0,
             0,
             0});
@@ -160,20 +158,10 @@
             this.numericUpDown_xAxisNum.Size = new System.Drawing.Size(55, 23);
             this.numericUpDown_xAxisNum.TabIndex = 22;
             this.numericUpDown_xAxisNum.Value = new decimal(new int[] {
-            100,
+            101,
             0,
             0,
             0});
-            // 
-            // button_parentDelaunayTriangulation
-            // 
-            this.button_parentDelaunayTriangulation.Location = new System.Drawing.Point(420, 13);
-            this.button_parentDelaunayTriangulation.Name = "button_parentDelaunayTriangulation";
-            this.button_parentDelaunayTriangulation.Size = new System.Drawing.Size(111, 26);
-            this.button_parentDelaunayTriangulation.TabIndex = 21;
-            this.button_parentDelaunayTriangulation.Text = "Parent Delaunay triangulation";
-            this.button_parentDelaunayTriangulation.UseVisualStyleBackColor = true;
-            this.button_parentDelaunayTriangulation.Click += new System.EventHandler(this.button_parentDelaunayTriangulation_Click);
             // 
             // label_yAxis
             // 
@@ -220,6 +208,11 @@
             this.numericUpDown_yAxisEnd.Name = "numericUpDown_yAxisEnd";
             this.numericUpDown_yAxisEnd.Size = new System.Drawing.Size(60, 23);
             this.numericUpDown_yAxisEnd.TabIndex = 17;
+            this.numericUpDown_yAxisEnd.Value = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
             this.numericUpDown_yAxisEnd.ValueChanged += new System.EventHandler(this.numericUpDown_yAxisEnd_ValueChanged);
             // 
             // numericUpDown_yAxisStart
@@ -239,6 +232,11 @@
             this.numericUpDown_yAxisStart.Name = "numericUpDown_yAxisStart";
             this.numericUpDown_yAxisStart.Size = new System.Drawing.Size(60, 23);
             this.numericUpDown_yAxisStart.TabIndex = 16;
+            this.numericUpDown_yAxisStart.Value = new decimal(new int[] {
+            6,
+            0,
+            0,
+            0});
             this.numericUpDown_yAxisStart.ValueChanged += new System.EventHandler(this.numericUpDown_yAxisStart_ValueChanged);
             // 
             // numericUpDown_xAxisEnd
@@ -258,6 +256,11 @@
             this.numericUpDown_xAxisEnd.Name = "numericUpDown_xAxisEnd";
             this.numericUpDown_xAxisEnd.Size = new System.Drawing.Size(60, 23);
             this.numericUpDown_xAxisEnd.TabIndex = 15;
+            this.numericUpDown_xAxisEnd.Value = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
             this.numericUpDown_xAxisEnd.ValueChanged += new System.EventHandler(this.numericUpDown_xAxisEnd_ValueChanged);
             // 
             // numericUpDown_xAxisStart
@@ -277,6 +280,11 @@
             this.numericUpDown_xAxisStart.Name = "numericUpDown_xAxisStart";
             this.numericUpDown_xAxisStart.Size = new System.Drawing.Size(60, 23);
             this.numericUpDown_xAxisStart.TabIndex = 14;
+            this.numericUpDown_xAxisStart.Value = new decimal(new int[] {
+            6,
+            0,
+            0,
+            0});
             this.numericUpDown_xAxisStart.ValueChanged += new System.EventHandler(this.numericUpDown_xAxisStart_ValueChanged);
             // 
             // checkBox_setDomainOfDefinition
@@ -381,7 +389,7 @@
             // button_test
             // 
             this.button_test.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.button_test.Location = new System.Drawing.Point(534, 15);
+            this.button_test.Location = new System.Drawing.Point(537, 75);
             this.button_test.Name = "button_test";
             this.button_test.Size = new System.Drawing.Size(35, 22);
             this.button_test.TabIndex = 6;
@@ -517,7 +525,6 @@
         private NumericUpDown numericUpDown_yAxisEnd;
         private NumericUpDown numericUpDown_yAxisStart;
         private Button button_interpolation;
-        private Button button_parentDelaunayTriangulation;
         private Label label_yAxis;
         private Label label_xAxis;
         private Label label_yAxisNum;

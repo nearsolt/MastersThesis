@@ -37,6 +37,10 @@ namespace MastersThesis {
             GnupStWr.Flush();
         }
 
+        public static void SetM(string options) {
+            GnupStWr.WriteLine("set {0}", options);
+        }
+
         public static void Set(params string[] options) {
             for (int i = 0; i < options.Length; i++)
                 GnupStWr.WriteLine("set " + options[i]);
