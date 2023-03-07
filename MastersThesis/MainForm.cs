@@ -108,7 +108,9 @@ namespace MastersThesis {
         #region Exact Solution
         private double ExactSolution(double x, double y) {
             //return Math.Sin(x) * y + x * Math.Cos(y) + x + y;
-            return 0.1 * (Math.Pow(x, 2) - Math.Pow(y - 10, 2)) - 2 * x * Math.Cos(y) - Math.Sin(y);
+            //return 0.1 * (Math.Pow(x, 2) - Math.Pow(y - 10, 2)) - 2 * x * Math.Cos(y) - Math.Sin(y);
+
+            return Math.Cos(x) * Math.Sin(0.5 * y) * x + y;
         }
         #endregion
 
@@ -288,7 +290,7 @@ namespace MastersThesis {
         }
         #endregion
 
-        
+
 
 
         private void GreedyTriangulation() {
@@ -570,7 +572,7 @@ namespace MastersThesis {
                         yVal[index] = _yAxisStart + k * h_oY;
                         zVal[index] = GFunction(xVal[index], yVal[index], planarObjectStore.TriangleList);
                         exactVal[index] = ExactSolution(xVal[index], yVal[index]);
-                        errorTriag[index] = Math.Abs(exactVal[index]- zVal[index]);
+                        errorTriag[index] = Math.Abs(exactVal[index] - zVal[index]);
                         index++;
                     }
                 }
@@ -598,7 +600,7 @@ namespace MastersThesis {
                          $"Mesh Ref tr: max approx = {errorTriag.Max()}\n");
             }
 
-
+            /*
             int numC = planarObjectStore.NodeList.Count;
             double[] xValQ = new double[numC];
             double[] yValQ = new double[numC];
@@ -609,13 +611,15 @@ namespace MastersThesis {
                 fValQ[indexx] = ExactSolution(xValQ[indexx], yValQ[indexx]);
             }
 
-
-            
+            */
 
 
             GnuPlot.Set("dgrid3d 50,50, qnorm 2");
             //GnuPlot.Set("title \"Approximation\"", "xlabel \"X-Axis\"", "ylabel \"Y-Axis\"", "zlabel \"Z-Axis\"");
             GnuPlot.Set("xlabel \"X-Axis\"", "ylabel \"Y-Axis\"", "zlabel \"Z-Axis\"");
+
+            GnuPlot.Set("pm3d");
+            GnuPlot.Set("palette defined ( 0 \"blue\", 3 \"green\", 6 \"yellow\", 10 \"red\" )");
 
             //GnuPlot.Set("contour base");
             //GnuPlot.Set("hidden3d");
@@ -630,31 +634,32 @@ namespace MastersThesis {
             // точная 
             GnuPlot.SPlot(xVal, yVal, exactVal, "title \"f(x,y)\" lc rgb \"purple\"");
 
-            GnuPlot.SPlot(xVal, yVal, exactVal, "with pm3d title \"f(x,y)\"");
+            //GnuPlot.SPlot(xVal, yVal, exactVal, "with pm3d title \"f(x,y)\"");
 
             // по изначальным узлам
-            GnuPlot.SPlot(xValQ, yValQ, fValQ, "title \"set of points A\" lc rgb \"blue\"");
+            //GnuPlot.SPlot(xValQ, yValQ, fValQ, "title \"set of points A\" lc rgb \"blue\"");
 
             // интеполяция
-            GnuPlot.SPlot(xVal, yVal, zVal, "with pm3d title \"G(A,x,y)\"");
+            //GnuPlot.SPlot(xVal, yVal, zVal, "with pm3d title \"G(A,x,y)\"");
 
             //GnuPlot.SPlot(xVal, yVal, zVal, $"title \"G(A,x,y)\" with linespoints pt 7");
 
-            GnuPlot.SPlot(xVal, yVal, zVal, "title \"G(A,x,y)\" lc rgb  \"red\"");
+
 
             if (_applicationState == ApplicationStateType.MeshRefinement) {
 
                 // интеполяция
-                GnuPlot.SPlot(xVal, yVal, zVal_parent, "with pm3d title \"G(A,x,y)_parent\"");
+                //GnuPlot.SPlot(xVal, yVal, zVal_parent, "with pm3d title \"G(A,x,y)_parent\"");
 
                 //GnuPlot.SPlot(xVal, yVal, zVal, $"title \"G(A,x,y)\" with linespoints pt 7");
 
-                GnuPlot.SPlot(xVal, yVal, zVal_parent, "title \"G(A,x,y)_parent\" lc rgb  \"red\"");
+                GnuPlot.SPlot(xVal, yVal, zVal_parent, "title \"G_p_r_e_v(A,x,y)\" lc rgb  \"#fb8585\"");
             }
 
+            GnuPlot.SPlot(xVal, yVal, zVal, "title \"G(A,x,y)\" lc rgb  \"#76c5f5\"");
         }
 
-
+        
         #endregion
 
 
@@ -671,7 +676,7 @@ namespace MastersThesis {
         private void button_interpolation_Click(object sender, EventArgs e) {
             ApproxFunction((int)numericUpDown_xAxisNum.Value, (int)numericUpDown_yAxisNum.Value, _triangulation);
         }
-        
+
         private void checkBox_setDomainOfDefinition_CheckedChanged(object sender, EventArgs e) {
 
         }
