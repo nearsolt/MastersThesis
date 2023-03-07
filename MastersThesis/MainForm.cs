@@ -92,17 +92,17 @@ namespace MastersThesis {
         /// </summary>
         private PlanarObjectStore _parentTriangulation = null!;
         /// <summary>
-        /// Список узлов (NodeStore)
+        /// Список узлов (NodeStore) для использования в методе измельчения
         /// </summary>
-        private List<NodeStore> _nodeStoreList = null!;
+        private List<NodeStore> _nodeStoreList = new List<NodeStore>();
         /// <summary>
-        /// Список ребер (EdgeStore)
+        /// Список ребер (EdgeStore) для использования в методе измельчения
         /// </summary>
-        private List<EdgeStore> _edgeStoreList = null!;
+        private List<EdgeStore> _edgeStoreList = new List<EdgeStore>();
         /// <summary>
-        /// Список треугольников (TriangleStore)
+        /// Список треугольников (TriangleStore) для использования в методе измельчения
         /// </summary>
-        private List<TriangleStore> _triangleStoreList = null!;
+        private List<TriangleStore> _triangleStoreList = new List<TriangleStore>();
         #endregion
 
         #region Exact Solution
@@ -141,15 +141,15 @@ namespace MastersThesis {
                     break;
                 case ApplicationStateType.GreedyTriangulation:
                     _triangulation.DrawTriangulation(ref graphics, checkBox_labelVisibility.Checked, checkBox_tweenAnimation.Checked, ref _animationCounter,
-                                                         _widthScalingCoeff, _heightScalingCoeff);
+                                                     _widthScalingCoeff, _heightScalingCoeff);
                     break;
                 case ApplicationStateType.DelaunayTriangulation:
                     _triangulation.DrawTriangulation(ref graphics, checkBox_labelVisibility.Checked, checkBox_tweenAnimation.Checked, ref _animationCounter,
-                                                         checkBox_innerTriangleVisibility.Checked, checkBox_circumcircleVisibility.Checked, _widthScalingCoeff, _heightScalingCoeff);
+                                                     checkBox_innerTriangleVisibility.Checked, checkBox_circumcircleVisibility.Checked, _widthScalingCoeff, _heightScalingCoeff);
                     break;
                 case ApplicationStateType.MeshRefinement:
                     _triangulation.DrawTriangulation(ref graphics, checkBox_labelVisibility.Checked, checkBox_tweenAnimation.Checked, ref _animationCounter,
-                                                         checkBox_innerTriangleVisibility.Checked, _widthScalingCoeff, _heightScalingCoeff);
+                                                     checkBox_innerTriangleVisibility.Checked, _widthScalingCoeff, _heightScalingCoeff);
                     break;
                 case ApplicationStateType.ParentDelaunayTriangulation:
                     break;
@@ -182,6 +182,7 @@ namespace MastersThesis {
 
         #region Buttons
         private void button_generateNodes_Click(object sender, EventArgs e) {
+            checkBox_tweenAnimation.Checked = false;
             checkBox_innerTriangleVisibility.Checked = false;
             checkBox_innerTriangleVisibility.Enabled = true;
             checkBox_circumcircleVisibility.Checked = false;
@@ -257,35 +258,30 @@ namespace MastersThesis {
             _applicationState = ApplicationStateType.NodeGeneration;
             int nodeCount = (int)numericUpDown_numberOfNodes.Value;
 
-            _nodeStoreList = new List<NodeStore>();
-            _edgeStoreList = new List<EdgeStore>();
-            _triangleStoreList = new List<TriangleStore>();
+            _nodeStoreList.Clear();
+            _edgeStoreList.Clear();
+            _triangleStoreList.Clear();
 
             _triangulation = new PlanarObjectStore();
-            List<Node> tempNodeList = new List<Node>();
+
+            _triangulation.NodeList.Add(new Node(0, _xAxisStart, _yAxisStart));
+            _triangulation.NodeList.Add(new Node(1, _xAxisStart, _yAxisEnd));
+            _triangulation.NodeList.Add(new Node(2, _xAxisEnd, _yAxisStart));
+            _triangulation.NodeList.Add(new Node(3, _xAxisEnd, _yAxisEnd));
 
             Random random = new Random();
-
-            tempNodeList.Add(new Node(0, _xAxisStart, _yAxisStart));
-            tempNodeList.Add(new Node(1, _xAxisStart, _yAxisEnd));
-            tempNodeList.Add(new Node(2, _xAxisEnd, _yAxisStart));
-            tempNodeList.Add(new Node(3, _xAxisEnd, _yAxisEnd));
-
             if (nodeCount > 4) {
                 for (int j = 4; j < nodeCount; j++) {
-                    double tmpXCoord = Math.Round(random.Next(Convert.ToInt32(Math.Ceiling(_xAxisStart)) * 100, Convert.ToInt32(Math.Floor(_xAxisEnd)) * 100) / 100.0,
-                                                  2, MidpointRounding.AwayFromZero);
-                    double tmpYCoord = Math.Round(random.Next(Convert.ToInt32(Math.Ceiling(_yAxisStart)) * 100, Convert.ToInt32(Math.Floor(_yAxisEnd)) * 100) / 100.0,
-                                                  2, MidpointRounding.AwayFromZero);
+                    double tmpXCoord = Math.Round(random.Next(Convert.ToInt32(Math.Ceiling(_xAxisStart)) * 100, Convert.ToInt32(Math.Floor(_xAxisEnd)) * 100) / 100.0, 2, MidpointRounding.AwayFromZero);
+                    double tmpYCoord = Math.Round(random.Next(Convert.ToInt32(Math.Ceiling(_yAxisStart)) * 100, Convert.ToInt32(Math.Floor(_yAxisEnd)) * 100) / 100.0, 2, MidpointRounding.AwayFromZero);
 
-                    if (tempNodeList.Exists(obj => obj.XCoordinate == tmpXCoord && obj.YCoordinate == tmpYCoord)) {
+                    if (_triangulation.NodeList.Exists(obj => obj.XCoordinate == tmpXCoord && obj.YCoordinate == tmpYCoord)) {
                         j--;
                         continue;
                     }
-                    tempNodeList.Add(new Node(j, tmpXCoord, tmpYCoord));
+                    _triangulation.NodeList.Add(new Node(j, tmpXCoord, tmpYCoord));
                 }
-            }
-            _triangulation.NodeList = tempNodeList;
+            }           
             pictureBox_mainPic.Refresh();
         }
         #endregion
@@ -295,23 +291,25 @@ namespace MastersThesis {
 
         private void GreedyTriangulation() {
             if (_applicationState == ApplicationStateType.MeshRefinement) {
-                MessageBox.Show("Perform node generation before Greedy triangulation.", "Information",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+                MessageBox.Show("Построение жадной триангуляции недоступно после применения метода измельчения. Сгенерируйте множество узлов еще раз.", "Information",
+                                MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
                 return;
             }
             _applicationState = ApplicationStateType.GreedyTriangulation;
             _animationCounter = 0;
-            _triangulation.EdgeList = new List<Edge>();
-            _triangulation.AnimationList = new List<TweenAnimation>();
+
+            _triangulation.EdgeList.Clear();
+            _triangulation.AnimationList.Clear();
 
             List<Edge> tempEdgeList = new List<Edge>();
-            List<TweenAnimation> tempTrackerList = new List<TweenAnimation>();
+            List<TweenAnimation> tempAnimationList = new List<TweenAnimation>();
 
-            (new Triangulation()).GreedyTriangulationStart(_triangulation.NodeList, ref tempEdgeList, ref tempTrackerList);
+            (new Triangulation()).GreedyTriangulationStart(_triangulation.NodeList, ref tempEdgeList, ref tempAnimationList);
 
             _triangulation.EdgeList = tempEdgeList;
-            _triangulation.AnimationList = tempTrackerList;
+            _triangulation.AnimationList = tempAnimationList;
             pictureBox_mainPic.Refresh();
+
 #warning w1: remove logger            
             int nLC = _triangulation.NodeList.Count;
             int eLC = _triangulation.EdgeList.Count;
@@ -320,8 +318,8 @@ namespace MastersThesis {
         }
         private void DelaunayTriangulation() {
             if (_applicationState == ApplicationStateType.MeshRefinement) {
-                MessageBox.Show("Perform node generation before Delaunay triangulation.", "Information",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+                MessageBox.Show("Построение триангуляции Делоне недоступно после применения метода измельчения. Сгенерируйте множество узлов еще раз.", "Information",
+                                MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
                 return;
             }
             _applicationState = ApplicationStateType.DelaunayTriangulation;
@@ -368,8 +366,8 @@ namespace MastersThesis {
             List<TweenAnimation> tempTrackerList = new List<TweenAnimation>();
             TweenAnimation tempTracker = _triangulation.AnimationList.Last();
 
-            (new Triangulation()).MeshRefinementStart(ref tempNodeList, ref tempEdgeList, ref tempTriangleList, ref tempTrackerList, tempTracker, _decimalPlaces,
-                                                      _meshRefinementCoeff, _nodeStoreList, _edgeStoreList, _triangleStoreList);
+            (new Triangulation()).MeshRefinementStart(ref tempNodeList, ref tempEdgeList, ref tempTriangleList, ref tempTrackerList, _nodeStoreList, _edgeStoreList, _triangleStoreList,
+                                                      tempTracker, _decimalPlaces, _meshRefinementCoeff);
 
             _triangulation.NodeList = tempNodeList;
             _triangulation.EdgeList = tempEdgeList;
@@ -493,24 +491,6 @@ namespace MastersThesis {
             }
             for (int j = 0; j < 3; j++) {
                 result += tmp[j] * functionValues[j];
-            }
-            return result;
-        }
-
-        private double GJFunctionTwo(double[] data, Node firstNode, Node secondNode, Node thirdNode, double[] functionValues) {
-            double result = 0;
-            double[] tmp = new double[3];
-
-            double[,] inverseLambda = InverseLambdaFunction(firstNode, secondNode, thirdNode);
-
-            for (int j = 0; j < 3; j++) {
-                tmp[j] = 0;
-                for (int k = 0; k < 3; k++) {
-                    tmp[j] += functionValues[k] * inverseLambda[k, j];
-                }
-            }
-            for (int j = 0; j < 3; j++) {
-                result += tmp[j] * data[j];
             }
             return result;
         }
@@ -659,7 +639,7 @@ namespace MastersThesis {
             GnuPlot.SPlot(xVal, yVal, zVal, "title \"G(A,x,y)\" lc rgb  \"#76c5f5\"");
         }
 
-        
+
         #endregion
 
 
