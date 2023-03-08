@@ -294,7 +294,7 @@
                 /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
                 /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
                 /// <returns></returns>
-                private PointF GetPointForEllipse(int halfThickness, double xCoordShiftCoeff, double yCoordShiftCoeff) {
+                private PointF GetPointForEllipse(float halfThickness, double xCoordShiftCoeff, double yCoordShiftCoeff) {
                     return new PointF((float)(_xCoordinate * xCoordShiftCoeff) - halfThickness, -(float)(_yCoordinate * yCoordShiftCoeff) - halfThickness);
                 }
                 /// <summary>
@@ -305,15 +305,13 @@
                 /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
                 /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
                 internal void DrawNode(ref Graphics graphics, bool nodeInfoVisibility, double xCoordShiftCoeff, double yCoordShiftCoeff) {
-                    int halfThickness = 2;
+                    float halfThickness = 2.5f;
                     graphics.FillEllipse(new Pen(Color.BlueViolet, halfThickness).Brush, new RectangleF(GetPointForEllipse(halfThickness, xCoordShiftCoeff, yCoordShiftCoeff),
                                          new SizeF(2 * halfThickness, 2 * halfThickness)));
                     if (nodeInfoVisibility) {
                         string nodeInfo = $"{_nodeID} ({_xCoordinate}; {_yCoordinate})";
-#warning w1:
-                        //string nodeInfo = $"{_nodeID} ({Math.Round(_xCoordinate, 2, MidpointRounding.AwayFromZero)}; {Math.Round(_yCoordinate, 2, MidpointRounding.AwayFromZero)})";
-                        SizeF strSize = graphics.MeasureString(nodeInfo, new Font("Cambria", 6));
-                        graphics.DrawString(nodeInfo, new Font("Cambria", 6), new Pen(Color.DarkBlue, halfThickness).Brush,
+                        SizeF strSize = graphics.MeasureString(nodeInfo, new Font("Cambria", 7));
+                        graphics.DrawString(nodeInfo, new Font("Cambria", 7), new Pen(Color.DarkBlue, halfThickness).Brush,
                                             GetPointForEllipse(halfThickness, xCoordShiftCoeff, yCoordShiftCoeff).X + 3 - strSize.Width / 2,
                                             GetPointForEllipse(halfThickness, xCoordShiftCoeff, yCoordShiftCoeff).Y + 3 + strSize.Height / 2);
                     }
@@ -390,7 +388,7 @@
                 /// <param name="xCoordShiftCoeff">Коэффициэнт сдвига координаты X в PictureBox</param>
                 /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
                 internal void DrawEdge(ref Graphics graphics, double xCoordShiftCoeff, double yCoordShiftCoeff) {
-                    graphics.DrawLine(new Pen(Color.DarkOrange, 1), _firstNode.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff), _secondNode.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff));
+                    graphics.DrawLine(new Pen(Color.DarkOrange, 1.5f), _firstNode.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff), _secondNode.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff));
                 }
                 #endregion
             }
@@ -544,7 +542,7 @@
                         PointF[] curvePoints = new PointF[] { GetFirstPoint(xCoordShiftCoeff, yCoordShiftCoeff), GetSecondPoint(xCoordShiftCoeff, yCoordShiftCoeff), GetThirdPoint(xCoordShiftCoeff, yCoordShiftCoeff) };
                         graphics.FillPolygon(new Pen(Color.LightGreen, 1).Brush, curvePoints);
                         if (triangleIDVisibility) {
-                            graphics.DrawString(_triangleID.ToString(), new Font("Cambria", 6), new Pen(Color.DeepPink, 2).Brush, _geometricCenter.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff));
+                            graphics.DrawString(_triangleID.ToString(), new Font("Cambria", 7), new Pen(Color.DeepPink, 2.5f).Brush, _geometricCenter.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff));
                         }
                     }
                 }
@@ -557,7 +555,7 @@
                 /// <param name="yCoordShiftCoeff">Коэффициэнт сдвига координаты Y в PictureBox</param>
                 internal void DrawCircumcircle(ref Graphics graphics, bool circumcircleVisibility, double xCoordShiftCoeff, double yCoordShiftCoeff) {
                     if (circumcircleVisibility) {
-                        graphics.DrawEllipse(new Pen(Color.LightGreen, 1), _nodeForEllipse.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).X, _nodeForEllipse.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).Y,
+                        graphics.DrawEllipse(new Pen(Color.LightGreen, 1.5f), _nodeForEllipse.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).X, _nodeForEllipse.GetPoint(xCoordShiftCoeff, yCoordShiftCoeff).Y,
                                              (float)(_circumcircleRadius * xCoordShiftCoeff * 2), (float)(_circumcircleRadius * yCoordShiftCoeff * 2));
                     }
                 }
