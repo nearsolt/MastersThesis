@@ -106,7 +106,7 @@ namespace MastersThesis {
         #endregion
 
         #region Exact Solution
-        private double ExactSolution(double x, double y) {
+        private static double ExactSolution(double x, double y) {
             //return Math.Sin(x) * y + x * Math.Cos(y) + x + y;
             //return 0.1 * (Math.Pow(x, 2) - Math.Pow(y - 10, 2)) - 2 * x * Math.Cos(y) - Math.Sin(y);
 
@@ -177,6 +177,15 @@ namespace MastersThesis {
         }
         private void checkBox_innerTriangleVisibility_CheckedChanged(object sender, EventArgs e) {
             pictureBox_mainPic.Refresh();
+        }
+        private void checkBox_setDomainOfDefinition_CheckedChanged(object sender, EventArgs e) {
+            if (checkBox_setDomainOfDefinition.Checked) {
+                groupBox_domainOfDefinition.Visible = true;
+                groupBox_domainOfDefinition.Enabled = true;
+            } else {
+                groupBox_domainOfDefinition.Visible = false;
+                groupBox_domainOfDefinition.Enabled = false;
+            }
         }
         #endregion
 
@@ -300,8 +309,7 @@ namespace MastersThesis {
         /// Random-генерация узлов в используемой области
         /// </summary>
         private void GenerateRandomNodes() {
-            bool isValidated = false;
-            InitializeCanvasSize(out isValidated);
+            InitializeCanvasSize(out bool isValidated);
             if (!isValidated) {
                 return;
             }
@@ -660,46 +668,14 @@ namespace MastersThesis {
 
         #endregion
 
-        private void checkBox_setDomainOfDefinition_CheckedChanged(object sender, EventArgs e) {
-
-        }
-
         #region Test Button & Debug
 #warning To do: remove from the final version with control (button_test visible = false)
         internal static void DebugLog(string type, string message) {
             File.AppendAllText(@"D:\mechmath\.Master's Thesis\logger.log", $"{DateTime.Now} {type}: {message}\n");
         }
         private void button_test_Click(object sender, EventArgs e) {
-
+            
         }
         #endregion
-
-
-        #region Useless
-#warning Useless
-
-
-
-        private void pictureBox_mainPic_SizeChanged(object sender, EventArgs e) {
-            //InitializeCanvasSize();
-        }
-        private void numericUpDown_xAxisStart_ValueChanged(object sender, EventArgs e) {
-
-        }
-
-        private void numericUpDown_xAxisEnd_ValueChanged(object sender, EventArgs e) {
-
-        }
-
-        private void numericUpDown_yAxisStart_ValueChanged(object sender, EventArgs e) {
-
-        }
-
-        private void numericUpDown_yAxisEnd_ValueChanged(object sender, EventArgs e) {
-
-        }
-        #endregion
-
-
     }
 }

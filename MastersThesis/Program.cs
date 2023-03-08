@@ -14,35 +14,18 @@ namespace MastersThesis {
 
             /* 
              * ToDo: 
-             *      PlanarObjectStore.cs
-             *                          #warning w1
+             *      PlanarObjectStore.cs - complit
+             *                          
              *                          
              *      MainForm.cs                   
              *                          ExactSolution
-             *                          #warning w0
+             *                          #warnings
              *                          
-             *                          
-            */
-
-
-
-
-            /*
-             
-             
-                Переписать  отрисовки окна, добавить вариант для выбора конкретной области триангуляции и подгонки ее под контрол бокса
-                    переписать методы, добавить расширенные опции в виде контролов для тонких настроек триангиляции и интерполяции, 
-                    обработка кейса, когда gnuplot не определяет десятичное число.
-             
-              
-                #warning Set up a color scheme:
-                    DrawNode(ref Graphics graphics, bool labelVisibility);
-                    DrawEdge(ref Graphics graphics);
-                    DrawInnerTriangle(ref Graphics graphics, bool labelVisibility, bool meshVisibility);
-                    DrawCircumcircle(ref Graphics graphics, bool labelVisibility, bool meshVisibility, bool circumcircleVisibility);
-
-                #warning Rename some var:
-                    GetAngleBetween(EdgeStore withEdge, EdgeStore edge);
+             *      Triangulation.cs
+             *      
+             *      MeshStore.cs
+             *      
+             *      GnuPlot.cs
             */
         }
     }
