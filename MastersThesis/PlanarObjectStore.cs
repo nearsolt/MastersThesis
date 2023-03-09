@@ -425,10 +425,6 @@
                 /// </summary>
                 private double _circumcircleRadius;
                 /// <summary>
-                /// Центр описанной окружности
-                /// </summary>
-                private Node _circumcircleCenter = null!;
-                /// <summary>
                 /// Вспомогательный узел для отрисовки описанной окружности
                 /// </summary>
                 private Node _nodeForEllipse = null!;
@@ -525,7 +521,6 @@
                     double xCoord = aux1 / div;
                     double yCoord = aux2 / div;
 
-                    _circumcircleCenter = new Node(-1, xCoord, yCoord);
                     _circumcircleRadius = Math.Sqrt((xCoord - _firstNode.XCoordinate) * (xCoord - _firstNode.XCoordinate) + (yCoord - _firstNode.YCoordinate) * (yCoord - _firstNode.YCoordinate));
                     _nodeForEllipse = new Node(-1, xCoord - _circumcircleRadius, yCoord + _circumcircleRadius);
                 }
