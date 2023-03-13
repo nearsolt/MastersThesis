@@ -10,21 +10,14 @@ namespace MastersThesis {
             Application.SetHighDpiMode(HighDpiMode.PerMonitor);
             Application.Run(new MainForm());
 
-#warning  To do: warnings handling, regrouping classes/methods, writing summaries and comments.
-
+#warning ToDo
             /* 
              * ToDo: 
-             *      PlanarObjectStore.cs - complit
-             *                          
-             *                          
+             *                 
              *      MainForm.cs                   
              *                          ExactSolution
              *                          #warnings
              *                          
-             *      Triangulation.cs
-             *      
-             *      MeshStore.cs
-             *      
              *      GnuPlot.cs
             */
         }

@@ -231,15 +231,15 @@
                 /// <summary>
                 /// ID узла
                 /// </summary>
-                private int _nodeID;
+                private readonly int _nodeID;
                 /// <summary>
                 /// Координата x
                 /// </summary>
-                private double _xCoordinate;
+                private readonly double _xCoordinate;
                 /// <summary>
                 /// Координата y
                 /// </summary>
-                private double _yCoordinate;
+                private readonly double _yCoordinate;
                 #endregion
 
                 #region Constructor & Properties
@@ -325,15 +325,15 @@
                 /// <summary>
                 /// ID ребра
                 /// </summary>
-                private int _edgeID;
+                private readonly int _edgeID;
                 /// <summary>
                 /// Первый узел ребра
                 /// </summary>
-                private Node _firstNode;
+                private readonly Node _firstNode;
                 /// <summary>
                 /// Второй узел ребра
                 /// </summary>
-                private Node _secondNode;
+                private readonly Node _secondNode;
                 #endregion
 
                 #region Constructor & Properties
@@ -399,23 +399,23 @@
                 /// <summary>
                 /// ID треугольника
                 /// </summary>
-                private int _triangleID;
+                private readonly int _triangleID;
                 /// <summary>
                 /// Первый узел треугольника
                 /// </summary>
-                private Node _firstNode;
+                private readonly Node _firstNode;
                 /// <summary>
                 /// Второй узел треугольника
                 /// </summary>
-                private Node _secondNode;
+                private readonly Node _secondNode;
                 /// <summary>
                 /// Третий узел треугольника
                 /// </summary>
-                private Node _thirdNode;
+                private readonly Node _thirdNode;
                 /// <summary>
                 /// Геометрический центр треугольника
                 /// </summary>
-                private Node _geometricCenter;
+                private readonly Node _geometricCenter;
                 /// <summary>
                 /// Коэффициент растяжения для отрисовки внутреннего треугольника
                 /// </summary>

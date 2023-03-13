@@ -106,6 +106,12 @@ namespace MastersThesis {
         #endregion
 
         #region Exact Solution
+        /// <summary>
+        /// Точное значение функции f(x,y)
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         private static double ExactSolution(double x, double y) {
             //return Math.Sin(x) * y + x * Math.Cos(y) + x + y;
             //return 0.1 * (Math.Pow(x, 2) - Math.Pow(y - 10, 2)) - 2 * x * Math.Cos(y) - Math.Sin(y);
@@ -122,7 +128,7 @@ namespace MastersThesis {
         private void MainForm_Load(object sender, EventArgs e) {
             GenerateRandomNodes();
         }
-        private void timer_animationTimer_Tick(object sender, EventArgs e) {
+        private void AnimationTimer_Tick(object sender, EventArgs e) {
             if (_animationCounter == _triangulation.AnimationList.Count - 1) {
                 _animationCounter = 0;
             } else {
@@ -130,7 +136,7 @@ namespace MastersThesis {
             }
             pictureBox_mainPic.Refresh();
         }
-        private void pictureBox_mainPic_Paint(object sender, PaintEventArgs e) {
+        private void MainPic_Paint(object sender, PaintEventArgs e) {
             Graphics graphics = e.Graphics;
             graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
             graphics.TranslateTransform(_canvasOrgin.X, _canvasOrgin.Y);
@@ -157,13 +163,13 @@ namespace MastersThesis {
         }
 
         #region CheckBoxs
-        private void checkBox_labelVisibility_CheckedChanged(object sender, EventArgs e) {
+        private void LabelVisibility_CheckedChanged(object sender, EventArgs e) {
             pictureBox_mainPic.Refresh();
         }
-        private void checkBox_circumcircleVisibility_CheckedChanged(object sender, EventArgs e) {
+        private void CircumcircleVisibility_CheckedChanged(object sender, EventArgs e) {
             pictureBox_mainPic.Refresh();
         }
-        private void checkBox_tweenAnimation_CheckedChanged(object sender, EventArgs e) {
+        private void TweenAnimation_CheckedChanged(object sender, EventArgs e) {
             if (checkBox_tweenAnimation.Checked) {
                 _animationCounter = 0;
                 timer_animationTimer.Interval = _timerInterval;
@@ -175,10 +181,10 @@ namespace MastersThesis {
             }
             pictureBox_mainPic.Refresh();
         }
-        private void checkBox_innerTriangleVisibility_CheckedChanged(object sender, EventArgs e) {
+        private void InnerTriangleVisibility_CheckedChanged(object sender, EventArgs e) {
             pictureBox_mainPic.Refresh();
         }
-        private void checkBox_setDomainOfDefinition_CheckedChanged(object sender, EventArgs e) {
+        private void SetDomainOfDefinition_CheckedChanged(object sender, EventArgs e) {
             if (checkBox_setDomainOfDefinition.Checked) {
                 groupBox_domainOfDefinition.Visible = true;
                 groupBox_domainOfDefinition.Enabled = true;
@@ -190,7 +196,7 @@ namespace MastersThesis {
         #endregion
 
         #region Buttons
-        private void button_generateNodes_Click(object sender, EventArgs e) {
+        private void GenerateNodes_Click(object sender, EventArgs e) {
             checkBox_tweenAnimation.Checked = false;
             checkBox_innerTriangleVisibility.Checked = false;
             checkBox_innerTriangleVisibility.Enabled = true;
@@ -198,7 +204,7 @@ namespace MastersThesis {
             checkBox_circumcircleVisibility.Enabled = true;
             GenerateRandomNodes();
         }
-        private void button_greedyTriangulation_Click(object sender, EventArgs e) {
+        private void GreedyTriangulation_Click(object sender, EventArgs e) {
             if (_applicationState == ApplicationState.MeshRefinement) {
                 MessageBox.Show("Построение жадной триангуляции недоступно после применения метода измельчения. Сгенерируйте множество узлов еще раз.", "Information",
                                 MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
@@ -210,7 +216,7 @@ namespace MastersThesis {
             checkBox_circumcircleVisibility.Enabled = false;
             GreedyTriangulation();
         }
-        private void button_delaunayTriangulation_Click(object sender, EventArgs e) {
+        private void DelaunayTriangulation_Click(object sender, EventArgs e) {
             if (_applicationState == ApplicationState.MeshRefinement) {
                 MessageBox.Show("Построение триангуляции Делоне недоступно после применения метода измельчения. Сгенерируйте множество узлов еще раз.", "Information",
                                 MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
@@ -220,7 +226,7 @@ namespace MastersThesis {
             checkBox_circumcircleVisibility.Enabled = true;
             DelaunayTriangulation();
         }
-        private void button_meshRefinement_Click(object sender, EventArgs e) {
+        private void MeshRefinement_Click(object sender, EventArgs e) {
             if (_applicationState != ApplicationState.DelaunayTriangulation) {
                 MessageBox.Show("Построение триангуляции методом измельчения доступно только после триангуляции Делоне.", "Information",
                                 MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
@@ -230,7 +236,7 @@ namespace MastersThesis {
             checkBox_circumcircleVisibility.Enabled = false;
             MeshRefinement();
         }
-        private void button_interpolation_Click(object sender, EventArgs e) {
+        private void Interpolation_Click(object sender, EventArgs e) {
             if (_applicationState != ApplicationState.DelaunayTriangulation && _applicationState != ApplicationState.MeshRefinement) {
                 MessageBox.Show("Построение интерполяции доступно только после триангуляции Делоне или применения метода измельчения.", "Information",
                                 MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
@@ -352,15 +358,13 @@ namespace MastersThesis {
             _triangulation.EdgeList.Clear();
             _triangulation.AnimationList.Clear();
 
-            List<Edge> outputEdgeList = new List<Edge>();
-            List<TweenAnimation> outputAnimationList = new List<TweenAnimation>();
-
             List<NodeStore> inputNodeList = new List<NodeStore>();
 
             for (int j = 0; j < _triangulation.NodeList.Count; j++) {
                 inputNodeList.Add(new NodeStore(j, _triangulation.NodeList[j].XCoordinate, _triangulation.NodeList[j].YCoordinate, _triangulation.NodeList[j]));
             }
-            MeshStore meshStore = new MeshStore(inputNodeList, ref outputEdgeList, ref outputAnimationList);
+
+            _ = new MeshStore(inputNodeList, out List<Edge> outputEdgeList, out List<TweenAnimation> outputAnimationList);
 
             _triangulation.EdgeList = outputEdgeList;
             _triangulation.AnimationList = outputAnimationList;
@@ -384,18 +388,15 @@ namespace MastersThesis {
             _triangulation.EdgeList.Clear();
             _triangulation.AnimationList.Clear();
 
-            List<Node> sortedNodeList = _triangulation.NodeList.OrderBy(obj => obj.XCoordinate).ThenBy(obj => obj.YCoordinate).ToList();
-            List<Edge> outputEdgeList = new List<Edge>();
-            List<Triangle> outputTriangleList = new List<Triangle>();
-            List<TweenAnimation> outputAnimationList = new List<TweenAnimation>();
-
             List<NodeStore> inputNodeList = new List<NodeStore>();
+            List<Node> sortedNodeList = _triangulation.NodeList.OrderBy(obj => obj.XCoordinate).ThenBy(obj => obj.YCoordinate).ToList();
 
             for (int j = 0; j < sortedNodeList.Count; j++) {
                 inputNodeList.Add(new NodeStore(j, sortedNodeList[j].XCoordinate, sortedNodeList[j].YCoordinate, sortedNodeList[j]));
             }
-            MeshStore meshStore = new MeshStore(inputNodeList, ref outputEdgeList, ref outputTriangleList, ref outputAnimationList,
-                                                ref _nodeStoreList, ref _edgeStoreList, ref _triangleStoreList);
+
+            _ = new MeshStore(inputNodeList, ref _nodeStoreList, ref _edgeStoreList, ref _triangleStoreList,
+                              out List<Edge> outputEdgeList, out List<Triangle> outputTriangleList, out List<TweenAnimation> outputAnimationList);
 
             _triangulation.EdgeList = outputEdgeList;
             _triangulation.TriangleList = outputTriangleList;
@@ -423,15 +424,8 @@ namespace MastersThesis {
             _parentTriangulation.EdgeList = _triangulation.EdgeList.ToList();
             _parentTriangulation.TriangleList = _triangulation.TriangleList.ToList();
 
-            TweenAnimation lastAnimation = _triangulation.AnimationList.Last();
-
-            List<Node> outputNodeList = new List<Node>();
-            List<Edge> outputEdgeList = new List<Edge>();
-            List<Triangle> outputTriangleList = new List<Triangle>();
-            List<TweenAnimation> outputAnimationList = new List<TweenAnimation>();
-
-            MeshStore meshStore = new MeshStore(_nodeStoreList, _edgeStoreList, _triangleStoreList, lastAnimation, _decimalPlaces, _meshRefinementCoeff,
-                                                ref outputNodeList, ref outputEdgeList, ref outputTriangleList, ref outputAnimationList);
+            _ = new MeshStore(_nodeStoreList, _edgeStoreList, _triangleStoreList, _triangulation.AnimationList.Last(), _decimalPlaces, _meshRefinementCoeff,
+                              out List<Node> outputNodeList, out List<Edge> outputEdgeList, out List<Triangle> outputTriangleList, out List<TweenAnimation> outputAnimationList);
 
             _triangulation.NodeList = outputNodeList;
             _triangulation.EdgeList = outputEdgeList;
@@ -464,7 +458,7 @@ namespace MastersThesis {
         /// <param name="secondNode">Второй узел треугольника</param>
         /// <param name="thirdNode">Третий узел треугольника</param>
         /// <returns></returns>
-        private double[,] InverseLambdaFunction(Node firstNode, Node secondNode, Node thirdNode) {
+        private static double[,] InverseLambdaFunction(Node firstNode, Node secondNode, Node thirdNode) {
             double[,] inverseLambda = new double[3, 3];
 
             double x1 = firstNode.XCoordinate;
@@ -503,7 +497,7 @@ namespace MastersThesis {
         /// <param name="geoCenterXCoord">Координата x геометрического центра треугольника</param>
         /// <param name="geoCenterYCoord">Координата y геометрического центра треугольника</param>
         /// <returns></returns>
-        private double WJFunction(double curXCoord, double curYCoord, double geoCenterXCoord, double geoCenterYCoord) {
+        private static double WJFunction(double curXCoord, double curYCoord, double geoCenterXCoord, double geoCenterYCoord) {
             return 1 / ((curXCoord - geoCenterXCoord) * (curXCoord - geoCenterXCoord) + (curYCoord - geoCenterYCoord) * (curYCoord - geoCenterYCoord));
         }
         /// <summary>
@@ -521,7 +515,7 @@ namespace MastersThesis {
         /// <param name="thirdNode">Третий узел треугольника</param>
         /// <param name="functionValues">Экспериментальные значения функции f(x,y)</param>
         /// <returns></returns>
-        private double GJFunction(double[] data, Node firstNode, Node secondNode, Node thirdNode, double[] functionValues) {
+        private static double GJFunction(double[] data, Node firstNode, Node secondNode, Node thirdNode, double[] functionValues) {
             double result = 0;
             double[] tmp = new double[3];
             double[,] inverseLambda = InverseLambdaFunction(firstNode, secondNode, thirdNode);
@@ -544,14 +538,13 @@ namespace MastersThesis {
         /// <param name="curYCoord">Координата y текущей точки</param>
         /// <param name="triangleList">Список треугольников</param>
         /// <returns></returns>
-        private double GFunction(double curXCoord, double curYCoord, List<Triangle> triangleList) {
-            double result = 0;
-            double w_j = 0;
+        private static double GFunction(double curXCoord, double curYCoord, List<Triangle> triangleList) {
             double w_sum = 0;
+            double result = 0;
             double[] data = new double[] { 1, curXCoord, curYCoord };
 
             for (int j = 0; j < triangleList.Count; j++) {
-                w_j = WJFunction(curXCoord, curYCoord, triangleList[j].GeometricCenter.XCoordinate, triangleList[j].GeometricCenter.YCoordinate);
+                double w_j = WJFunction(curXCoord, curYCoord, triangleList[j].GeometricCenter.XCoordinate, triangleList[j].GeometricCenter.YCoordinate);
 
                 double[] functionValues = new double[] {
                     ExactSolution(triangleList[j].FirstNode.XCoordinate,triangleList[j].FirstNode.YCoordinate),
@@ -585,8 +578,8 @@ namespace MastersThesis {
             double[] zValues_prev = new double[xAxisNum * yAxisNum];
             double[] zValues = new double[xAxisNum * yAxisNum];
 
-            double[] approxError_prev = new double[xAxisNum * yAxisNum];
-            double[] approxError = new double[xAxisNum * yAxisNum];
+            double tmpApproxError;
+            double maxApproxError = 0;
 
             int index = 0;
             string info = string.Empty;
@@ -600,11 +593,15 @@ namespace MastersThesis {
                         exactValues[index] = ExactSolution(xValues[index], yValues[index]);
                         zValues[index] = GFunction(xValues[index], yValues[index], _triangulation.TriangleList);
 
-                        approxError[index] = Math.Abs(exactValues[index] - zValues[index]);
+                        tmpApproxError = Math.Abs(exactValues[index] - zValues[index]);
+
+                        if(tmpApproxError > maxApproxError) {
+                            maxApproxError = tmpApproxError;
+                        }
                         index++;
                     }
                 }
-                info = $"[{_xAxisStart};{_xAxisEnd}]x[{_yAxisStart};{_yAxisEnd}]: {nameof(hX)}={hX}; {nameof(hY)}={hY}\nmax {nameof(approxError)} = {approxError.Max()}";
+                info = $"[{_xAxisStart};{_xAxisEnd}]x[{_yAxisStart};{_yAxisEnd}]: {nameof(hX)}={hX}; {nameof(hY)}={hY}\n{nameof(maxApproxError)} = {maxApproxError}";
 
                 #region Debug
 #warning w1: remove logger
@@ -612,6 +609,9 @@ namespace MastersThesis {
                 #endregion
             }
             if (_applicationState == ApplicationState.MeshRefinement) {
+                double tmpApproxError_prev;
+                double maxApproxError_prev = 0;
+
                 for (int j = 0; j < xAxisNum; j++) {
                     for (int k = 0; k < yAxisNum; k++) {
                         xValues[index] = _xAxisStart + j * hX;
@@ -621,13 +621,20 @@ namespace MastersThesis {
                         zValues_prev[index] = GFunction(xValues[index], yValues[index], _parentTriangulation.TriangleList);
                         zValues[index] = GFunction(xValues[index], yValues[index], _triangulation.TriangleList);
 
-                        approxError_prev[index] = Math.Abs(exactValues[index] - zValues_prev[index]);
-                        approxError[index] = Math.Abs(exactValues[index] - zValues[index]);
+                        tmpApproxError_prev = Math.Abs(exactValues[index] - zValues_prev[index]);
+                        if (tmpApproxError_prev > maxApproxError_prev) {
+                            maxApproxError_prev = tmpApproxError_prev;
+                        }
+
+                        tmpApproxError = Math.Abs(exactValues[index] - zValues[index]);
+                        if (tmpApproxError > maxApproxError) {
+                            maxApproxError = tmpApproxError;
+                        }
                         index++;
                     }
                 }
                 info = $"[{_xAxisStart};{_xAxisEnd}]x[{_yAxisStart};{_yAxisEnd}]: {nameof(hX)}={hX}; {nameof(hY)}={hY}\n" +
-                       $"max {nameof(approxError_prev)} = {approxError_prev.Max()}\nmax {nameof(approxError)} = {approxError.Max()}";
+                       $"{nameof(maxApproxError_prev)} = {maxApproxError_prev}\n{nameof(maxApproxError)} = {maxApproxError}";
 
                 #region Debug
 #warning w1: remove logger
@@ -673,8 +680,8 @@ namespace MastersThesis {
         internal static void DebugLog(string type, string message) {
             File.AppendAllText(@"D:\mechmath\.Master's Thesis\logger.log", $"{DateTime.Now} {type}: {message}\n");
         }
-        private void button_test_Click(object sender, EventArgs e) {
-            
+        private void Test_Click(object sender, EventArgs e) {
+
         }
         #endregion
     }
