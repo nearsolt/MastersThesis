@@ -38,7 +38,6 @@
             this.numericUpDown_yAxisEnd = new System.Windows.Forms.NumericUpDown();
             this.label_yAxis = new System.Windows.Forms.Label();
             this.label_xAxis = new System.Windows.Forms.Label();
-            this.button_test = new System.Windows.Forms.Button();
             this.button_interpolation = new System.Windows.Forms.Button();
             this.checkBox_setDomainOfDefinition = new System.Windows.Forms.CheckBox();
             this.checkBox_tweenAnimation = new System.Windows.Forms.CheckBox();
@@ -75,7 +74,6 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox_ribbon.Controls.Add(this.groupBox_axisNum);
             this.groupBox_ribbon.Controls.Add(this.groupBox_domainOfDefinition);
-            this.groupBox_ribbon.Controls.Add(this.button_test);
             this.groupBox_ribbon.Controls.Add(this.button_interpolation);
             this.groupBox_ribbon.Controls.Add(this.checkBox_setDomainOfDefinition);
             this.groupBox_ribbon.Controls.Add(this.checkBox_tweenAnimation);
@@ -298,17 +296,6 @@
             this.label_xAxis.Size = new System.Drawing.Size(44, 15);
             this.label_xAxis.TabIndex = 19;
             this.label_xAxis.Text = "X-Axis:";
-            // 
-            // button_test
-            // 
-            this.button_test.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.button_test.Location = new System.Drawing.Point(467, 13);
-            this.button_test.Name = "button_test";
-            this.button_test.Size = new System.Drawing.Size(35, 22);
-            this.button_test.TabIndex = 6;
-            this.button_test.Text = "test";
-            this.button_test.UseVisualStyleBackColor = true;
-            this.button_test.Click += new System.EventHandler(this.Test_Click);
             // 
             // button_interpolation
             // 
@@ -536,7 +523,6 @@
         private Label label_numberOfNodes;
         private Button button_greedyTriangulation;
         private Button button_delaunayTriangulation;
-        private Button button_test;
         private Button button_meshRefinement;
         private NumericUpDown numericUpDown_meshRefinementCoeff;
         private NumericUpDown numericUpDown_numberOfNodes;

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Xml;
+using System.Diagnostics;
 using static MastersThesis.MainForm.PlanarObjectStore;
 using static MastersThesis.MeshStore;
 
@@ -103,6 +104,10 @@ namespace MastersThesis {
         /// Список треугольников (TriangleStore) для использования в методе измельчения
         /// </summary>
         private List<TriangleStore> _triangleStoreList = new List<TriangleStore>();
+        /// <summary>
+        /// Путь к приложению GnuPlot
+        /// </summary>
+        private string? _gnuplotPath;
         #endregion
 
         #region Exact Solution
@@ -242,6 +247,14 @@ namespace MastersThesis {
                                 MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
                 return;
             }
+
+            if (_gnuplotPath == null) {
+                GetGnuPlotPath();
+            }
+            if (_gnuplotPath == null) {
+                MessageBox.Show("Построение графиков не доступно: отсутствует доступ к приложению GnuPlot. Будут представлены только численнные результаты аппроксимации функции.",
+                                "Information", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+            }
             button_interpolation.Enabled = false;
             Interpolation();
             button_interpolation.Enabled = true;
@@ -252,7 +265,7 @@ namespace MastersThesis {
 
         #region Methods
 
-        #region Initialization & Triangulation
+        #region Initialization
         /// <summary>
         /// Инициализация области определения и коэффициэнтов растяжения ширины и высоты в pictureBox_mainPic
         /// </summary>
@@ -311,6 +324,44 @@ namespace MastersThesis {
             }
             pictureBox_mainPic.Refresh();
         }
+        /// <summary>
+        /// Получение пути к приложению GnuPlot из конфигурационного файла
+        /// </summary>
+        private void GetGnuPlotPath() {
+            try {
+                XmlDocument config = new XmlDocument();
+                config.Load("GnuPlot.config");
+                XmlElement? root = config.DocumentElement;
+
+                if (root == null) {
+                    throw new Exception("в config файле отсутствует корневой элемент. Воспользуйтесь корректным конфигурационным файлом.");
+                }
+
+                XmlNode? pathNode = root.SelectSingleNode("GnuPlotPath");
+
+                if (pathNode == null) {
+                    throw new Exception("в config файле отсутствует тег <GnuPlotPath>. Воспользуйтесь корректным конфигурационным файлом.");
+                }
+
+                string path = pathNode.InnerText;
+
+                if (!new FileInfo(path).Exists) {
+                    throw new Exception($"в config файле в теге <GnuPlotPath> указан некорректный путь к приложению GnuPlot:\n{path}\n Введите корректные данные.");
+                }
+
+                _gnuplotPath = $@"{path}";
+
+            } catch (Exception ex) {
+                _gnuplotPath = null;
+                DebugLog("Error", $"GetGnuPlotPath: при получении данных из конфигурационного файла произошла ошибка.\n{ex}");
+                MessageBox.Show($"При получении данных из конфигурационного файла произошла ошибка:\n{ex.Message}", "Information",
+                                MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+
+            }
+        }
+        #endregion
+
+        #region Triangulation
         /// <summary>
         /// Random-генерация узлов в используемой области
         /// </summary>
@@ -595,7 +646,7 @@ namespace MastersThesis {
 
                         tmpApproxError = Math.Abs(exactValues[index] - zValues[index]);
 
-                        if(tmpApproxError > maxApproxError) {
+                        if (tmpApproxError > maxApproxError) {
                             maxApproxError = tmpApproxError;
                         }
                         index++;
@@ -641,11 +692,11 @@ namespace MastersThesis {
                 DebugLog("Info", $"GnuPlot MR: {info}\n");
                 #endregion
             }
-
-            Thread thread = new Thread(() => PlotFunctionGraphs(xValues, yValues, exactValues, zValues_prev, zValues));
-            thread.Start();
-
-            MessageBox.Show($"Результаты построения интерполяции:\n{info}.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+            if (_gnuplotPath != null) {
+                Thread thread = new Thread(() => PlotFunctionGraphs(xValues, yValues, exactValues, zValues_prev, zValues, _gnuplotPath));
+                thread.Start();
+            }
+            MessageBox.Show($"Результаты аппроксимации функции f(x,y):\n{info}.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
         }
         /// <summary>
         /// Построение графиков функции f(x,y) и аппроксимирующих функций G(A,x,y), G_{prev}(A,x,y) с использованием GnuPlot
@@ -655,33 +706,31 @@ namespace MastersThesis {
         /// <param name="exactValues">Массив значений f(x,y)</param>
         /// <param name="zValues_prev">Массив значений z_prev</param>
         /// <param name="zValues">Массив значений z</param>
-        private void PlotFunctionGraphs(double[] xValues, double[] yValues, double[] exactValues, double[] zValues_prev, double[] zValues) {
-            GnuPlot.Set("dgrid3d 50,50, qnorm 2");
-            GnuPlot.Set("title \"Interpolation\"");
-            GnuPlot.Set("xlabel \"X-Axis\"", "ylabel \"Y-Axis\"", "zlabel \"Z-Axis\"");
-            GnuPlot.Set("pm3d");
-            GnuPlot.Set("palette defined ( 0 \"blue\", 3 \"green\", 6 \"yellow\", 10 \"red\" )");
-            GnuPlot.HoldOn();
+        /// <param name="gnuplotPath">Путь к приложению GnuPlot</param>
+        private void PlotFunctionGraphs(double[] xValues, double[] yValues, double[] exactValues, double[] zValues_prev, double[] zValues, string gnuplotPath) {
+            GnuPlot gnuplot = new GnuPlot(gnuplotPath);
 
-            GnuPlot.SPlot(xValues, yValues, exactValues, "title \"f(x,y)\" lc rgb \"purple\"");
+            gnuplot.Set("dgrid3d 50,50, qnorm 2");
+            gnuplot.Set("title \"Interpolation\"");
+            gnuplot.Set("xlabel \"X-Axis\"", "ylabel \"Y-Axis\"", "zlabel \"Z-Axis\"");
+            gnuplot.Set("pm3d");
+            gnuplot.Set("palette defined ( 0 \"blue\", 3 \"green\", 6 \"yellow\", 10 \"red\" )");
+
+            gnuplot.SPlot(xValues, yValues, exactValues, "title \"f(x,y)\" lc rgb \"purple\"");
 
             if (_applicationState == ApplicationState.MeshRefinement) {
-                GnuPlot.SPlot(xValues, yValues, zValues_prev, "title \"G_p_r_e_v(A,x,y)\" lc rgb  \"#fb8585\"");
+                gnuplot.SPlot(xValues, yValues, zValues_prev, "title \"G_p_r_e_v(A,x,y)\" lc rgb  \"#fb8585\"");
             }
 
-            GnuPlot.SPlot(xValues, yValues, zValues, "title \"G(A,x,y)\" lc rgb  \"#76c5f5\"");
+            gnuplot.SPlot(xValues, yValues, zValues, "title \"G(A,x,y)\" lc rgb  \"#76c5f5\"");
         }
         #endregion
 
         #endregion
 
         #region Test Button & Debug
-#warning To do: remove from the final version with control (button_test visible = false)
         internal static void DebugLog(string type, string message) {
             File.AppendAllText(@"D:\mechmath\.Master's Thesis\logger.log", $"{DateTime.Now} {type}: {message}\n");
-        }
-        private void Test_Click(object sender, EventArgs e) {
-
         }
         #endregion
     }
