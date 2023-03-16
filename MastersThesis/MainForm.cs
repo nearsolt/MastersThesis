@@ -765,6 +765,8 @@ namespace MastersThesis {
             gnuplot.Set("dgrid3d 40,40 gauss .75", "pm3d");
             gnuplot.Set("title \"Interpolation\"", "xlabel \"X-Axis\"", "ylabel \"Y-Axis\"", "zlabel \"Z-Axis\"");
             gnuplot.Set("palette defined ( 0 \"blue\", 3 \"green\", 6 \"yellow\", 10 \"red\" )");
+            gnuplot.Set($"xrange[{_xAxisStart.ToString().Replace(',', '.')}:{_xAxisEnd.ToString().Replace(',', '.')}]");
+            gnuplot.Set($"yrange[{_yAxisStart.ToString().Replace(',', '.')}:{_yAxisEnd.ToString().Replace(',', '.')}]");
         }
         #endregion
 

@@ -73,14 +73,14 @@ namespace MastersThesis {
             }
         }
         /// <summary>
-        /// Запись данных
+        /// Запись данных в поток с корректировкой вещественных чисел (замена ',' на '.')
         /// </summary>
         /// <param name="x">Массив значений (координата x)</param>
         /// <param name="y">Массив значений (координата y)</param>
         /// <param name="z">Массив значений (координата z)</param>
         private void WriteData(double[] x, double[] y, double[] z) {
             for (int j = 0; j < x.Length; j++) {
-                _streamWriter.WriteLine($"{x[j]} {y[j]} {z[j]}");
+                _streamWriter.WriteLine($"{x[j].ToString().Replace(',', '.')} {y[j].ToString().Replace(',', '.')} {z[j].ToString().Replace(',', '.')}");
             }
         }
         /// <summary>
