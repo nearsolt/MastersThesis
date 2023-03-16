@@ -654,6 +654,11 @@ namespace MastersThesis {
                 }
                 info = $"[{_xAxisStart};{_xAxisEnd}]x[{_yAxisStart};{_yAxisEnd}]: {nameof(hX)}={hX}; {nameof(hY)}={hY}\n{nameof(maxApproxError)} = {maxApproxError}";
 
+                if (_gnuplotPath != null) {
+                    Thread thread = new Thread(() => PlotFunctionGraphs(xValues, yValues, exactValues, zValues, _gnuplotPath));
+                    thread.Start();
+                }
+
                 #region Debug
 #warning w1: remove logger
                 DebugLog("Info", $"GnuPlot DT: {info}\n");
@@ -687,16 +692,35 @@ namespace MastersThesis {
                 info = $"[{_xAxisStart};{_xAxisEnd}]x[{_yAxisStart};{_yAxisEnd}]: {nameof(hX)}={hX}; {nameof(hY)}={hY}\n" +
                        $"{nameof(maxApproxError_prev)} = {maxApproxError_prev}\n{nameof(maxApproxError)} = {maxApproxError}";
 
+                if (_gnuplotPath != null) {
+                    Thread thread = new Thread(() => PlotFunctionGraphs(xValues, yValues, exactValues, zValues_prev, zValues, _gnuplotPath));
+                    thread.Start();
+                }
+
                 #region Debug
 #warning w1: remove logger
                 DebugLog("Info", $"GnuPlot MR: {info}\n");
                 #endregion
             }
-            if (_gnuplotPath != null) {
-                Thread thread = new Thread(() => PlotFunctionGraphs(xValues, yValues, exactValues, zValues_prev, zValues, _gnuplotPath));
-                thread.Start();
-            }
             MessageBox.Show($"Результаты аппроксимации функции f(x,y):\n{info}.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+        }
+        /// <summary>
+        /// Построение графиков функции f(x,y) и аппроксимирующей функции G(A,x,y) с использованием GnuPlot
+        /// </summary>
+        /// <param name="xValues">Массив значений x</param>
+        /// <param name="yValues">Массив значений y</param>
+        /// <param name="exactValues">Массив значений f(x,y)</param>
+        /// <param name="zValues">Массив значений z</param>
+        /// <param name="gnuplotPath">Путь к приложению GnuPlot</param>
+        private void PlotFunctionGraphs(double[] xValues, double[] yValues, double[] exactValues, double[] zValues, string gnuplotPath) {
+            GnuPlot gnuplot = new GnuPlot(gnuplotPath);
+
+            gnuplot.Set("dgrid3d 40,40 gauss 1", "pm3d");
+            gnuplot.Set("title \"Interpolation\"", "xlabel \"X-Axis\"", "ylabel \"Y-Axis\"", "zlabel \"Z-Axis\"");
+            gnuplot.Set("palette defined ( 0 \"blue\", 3 \"green\", 6 \"yellow\", 10 \"red\" )");
+
+            gnuplot.SPlot(xValues, yValues, exactValues, "title \"f(x,y)\" lc rgb \"purple\"");
+            gnuplot.SPlot(xValues, yValues, zValues, "title \"G(A,x,y)\" lc rgb \"#76c5f5\"");
         }
         /// <summary>
         /// Построение графиков функции f(x,y) и аппроксимирующих функций G(A,x,y), G_{prev}(A,x,y) с использованием GnuPlot
@@ -710,19 +734,13 @@ namespace MastersThesis {
         private void PlotFunctionGraphs(double[] xValues, double[] yValues, double[] exactValues, double[] zValues_prev, double[] zValues, string gnuplotPath) {
             GnuPlot gnuplot = new GnuPlot(gnuplotPath);
 
-            gnuplot.Set("dgrid3d 50,50, qnorm 2");
-            gnuplot.Set("title \"Interpolation\"");
-            gnuplot.Set("xlabel \"X-Axis\"", "ylabel \"Y-Axis\"", "zlabel \"Z-Axis\"");
-            gnuplot.Set("pm3d");
+            gnuplot.Set("dgrid3d 40,40 gauss 1", "pm3d");
+            gnuplot.Set("title \"Interpolation\"", "xlabel \"X-Axis\"", "ylabel \"Y-Axis\"", "zlabel \"Z-Axis\"");
             gnuplot.Set("palette defined ( 0 \"blue\", 3 \"green\", 6 \"yellow\", 10 \"red\" )");
 
             gnuplot.SPlot(xValues, yValues, exactValues, "title \"f(x,y)\" lc rgb \"purple\"");
-
-            if (_applicationState == ApplicationState.MeshRefinement) {
-                gnuplot.SPlot(xValues, yValues, zValues_prev, "title \"G_p_r_e_v(A,x,y)\" lc rgb  \"#fb8585\"");
-            }
-
-            gnuplot.SPlot(xValues, yValues, zValues, "title \"G(A,x,y)\" lc rgb  \"#76c5f5\"");
+            gnuplot.SPlot(xValues, yValues, zValues_prev, "title \"G_p_r_e_v(A,x,y)\" lc rgb \"#fb8585\"");
+            gnuplot.SPlot(xValues, yValues, zValues, "title \"G(A,x,y)\" lc rgb \"#76c5f5\"");
         }
         #endregion
 
