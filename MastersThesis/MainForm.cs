@@ -118,10 +118,10 @@ namespace MastersThesis {
         /// <param name="y"></param>
         /// <returns></returns>
         private static double ExactSolution(double x, double y) {
-            //return Math.Sin(x) * y + x * Math.Cos(y) + x + y;
-            //return 0.1 * (Math.Pow(x, 2) - Math.Pow(y - 10, 2)) - 2 * x * Math.Cos(y) - Math.Sin(y);
+            //return Math.Cos(x) * Math.Sin(0.5 * y) * x + y;
 
-            return Math.Cos(x) * Math.Sin(0.5 * y) * x + y;
+            // Matyas function f(0,0) = 0;  -10 <= x,y <= 10
+            return 0.26 * (x * x + y * y) - 0.48 * x * y;
         }
         #endregion
 
@@ -191,10 +191,8 @@ namespace MastersThesis {
         }
         private void SetDomainOfDefinition_CheckedChanged(object sender, EventArgs e) {
             if (checkBox_setDomainOfDefinition.Checked) {
-                groupBox_domainOfDefinition.Visible = true;
                 groupBox_domainOfDefinition.Enabled = true;
             } else {
-                groupBox_domainOfDefinition.Visible = false;
                 groupBox_domainOfDefinition.Enabled = false;
             }
         }
@@ -371,6 +369,7 @@ namespace MastersThesis {
                 return;
             }
             _applicationState = ApplicationState.NodeGeneration;
+            groupBox_axisNum.Enabled = false;
             int nodeCount = (int)numericUpDown_numberOfNodes.Value;
 
             _nodeStoreList.Clear();
@@ -404,6 +403,7 @@ namespace MastersThesis {
         /// </summary>
         private void GreedyTriangulation() {
             _applicationState = ApplicationState.GreedyTriangulation;
+            groupBox_axisNum.Enabled = false;
             _animationCounter = 0;
 
             _triangulation.EdgeList.Clear();
@@ -434,6 +434,7 @@ namespace MastersThesis {
         /// </summary>
         private void DelaunayTriangulation() {
             _applicationState = ApplicationState.DelaunayTriangulation;
+            groupBox_axisNum.Enabled = true;
             _animationCounter = 0;
 
             _triangulation.EdgeList.Clear();
@@ -467,6 +468,7 @@ namespace MastersThesis {
         /// </summary>
         private void MeshRefinement() {
             _applicationState = ApplicationState.MeshRefinement;
+            groupBox_axisNum.Enabled = true;
             _meshRefinementCoeff = (int)numericUpDown_meshRefinementCoeff.Value;
             _animationCounter = 0;
 
@@ -655,7 +657,7 @@ namespace MastersThesis {
                 info = $"[{_xAxisStart};{_xAxisEnd}]x[{_yAxisStart};{_yAxisEnd}]: {nameof(hX)}={hX}; {nameof(hY)}={hY}\n{nameof(maxApproxError)} = {maxApproxError}";
 
                 if (_gnuplotPath != null) {
-                    Thread thread = new Thread(() => PlotFunctionGraphs(xValues, yValues, exactValues, zValues, _gnuplotPath));
+                    Thread thread = new Thread(() => PlotFunctionGraphs(xValues, yValues, exactValues, zValues, _gnuplotPath, checkBox_combinedGraphs.Checked));
                     thread.Start();
                 }
 
@@ -693,7 +695,7 @@ namespace MastersThesis {
                        $"{nameof(maxApproxError_prev)} = {maxApproxError_prev}\n{nameof(maxApproxError)} = {maxApproxError}";
 
                 if (_gnuplotPath != null) {
-                    Thread thread = new Thread(() => PlotFunctionGraphs(xValues, yValues, exactValues, zValues_prev, zValues, _gnuplotPath));
+                    Thread thread = new Thread(() => PlotFunctionGraphs(xValues, yValues, exactValues, zValues_prev, zValues, _gnuplotPath, checkBox_combinedGraphs.Checked));
                     thread.Start();
                 }
 
@@ -702,6 +704,7 @@ namespace MastersThesis {
                 DebugLog("Info", $"GnuPlot MR: {info}\n");
                 #endregion
             }
+
             MessageBox.Show($"Результаты аппроксимации функции f(x,y):\n{info}.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
         }
         /// <summary>
@@ -712,15 +715,19 @@ namespace MastersThesis {
         /// <param name="exactValues">Массив значений f(x,y)</param>
         /// <param name="zValues">Массив значений z</param>
         /// <param name="gnuplotPath">Путь к приложению GnuPlot</param>
-        private void PlotFunctionGraphs(double[] xValues, double[] yValues, double[] exactValues, double[] zValues, string gnuplotPath) {
+        /// <param name="combinedGraphs">Построение графиков в одном окне GnuPlot</param>
+        private void PlotFunctionGraphs(double[] xValues, double[] yValues, double[] exactValues, double[] zValues, string gnuplotPath, bool combinedGraphs) {
             GnuPlot gnuplot = new GnuPlot(gnuplotPath);
-
-            gnuplot.Set("dgrid3d 40,40 gauss 1", "pm3d");
-            gnuplot.Set("title \"Interpolation\"", "xlabel \"X-Axis\"", "ylabel \"Y-Axis\"", "zlabel \"Z-Axis\"");
-            gnuplot.Set("palette defined ( 0 \"blue\", 3 \"green\", 6 \"yellow\", 10 \"red\" )");
-
+            SetGnuPlotParams(ref gnuplot);
             gnuplot.SPlot(xValues, yValues, exactValues, "title \"f(x,y)\" lc rgb \"purple\"");
-            gnuplot.SPlot(xValues, yValues, zValues, "title \"G(A,x,y)\" lc rgb \"#76c5f5\"");
+
+            if (combinedGraphs) {
+                gnuplot.SPlot(xValues, yValues, zValues, "title \"G(A,x,y)\" lc rgb \"#76c5f5\"");
+            } else {
+                GnuPlot gnuplot2 = new GnuPlot(gnuplotPath);
+                SetGnuPlotParams(ref gnuplot2);
+                gnuplot2.SPlot(xValues, yValues, zValues, "title \"G(A,x,y)\" lc rgb \"#76c5f5\"");
+            }
         }
         /// <summary>
         /// Построение графиков функции f(x,y) и аппроксимирующих функций G(A,x,y), G_{prev}(A,x,y) с использованием GnuPlot
@@ -731,16 +738,33 @@ namespace MastersThesis {
         /// <param name="zValues_prev">Массив значений z_prev</param>
         /// <param name="zValues">Массив значений z</param>
         /// <param name="gnuplotPath">Путь к приложению GnuPlot</param>
-        private void PlotFunctionGraphs(double[] xValues, double[] yValues, double[] exactValues, double[] zValues_prev, double[] zValues, string gnuplotPath) {
+        /// <param name="combinedGraphs">Построение графиков в одном окне GnuPlot</param>
+        private void PlotFunctionGraphs(double[] xValues, double[] yValues, double[] exactValues, double[] zValues_prev, double[] zValues, string gnuplotPath, bool combinedGraphs) {
             GnuPlot gnuplot = new GnuPlot(gnuplotPath);
+            SetGnuPlotParams(ref gnuplot);
+            gnuplot.SPlot(xValues, yValues, exactValues, "title \"f(x,y)\" lc rgb \"purple\"");
 
-            gnuplot.Set("dgrid3d 40,40 gauss 1", "pm3d");
+            if (combinedGraphs) {
+                gnuplot.SPlot(xValues, yValues, zValues_prev, "title \"G_p_r_e_v(A,x,y)\" lc rgb \"#fb8585\"");
+                gnuplot.SPlot(xValues, yValues, zValues, "title \"G(A,x,y)\" lc rgb \"#76c5f5\"");
+            } else {
+                GnuPlot gnuplot2 = new GnuPlot(gnuplotPath);
+                SetGnuPlotParams(ref gnuplot2);
+                gnuplot2.SPlot(xValues, yValues, zValues_prev, "title \"G_p_r_e_v(A,x,y)\" lc rgb \"#fb8585\"");
+
+                GnuPlot gnuplot3 = new GnuPlot(gnuplotPath);
+                SetGnuPlotParams(ref gnuplot3);
+                gnuplot3.SPlot(xValues, yValues, zValues, "title \"G(A,x,y)\" lc rgb \"#76c5f5\"");
+            }
+        }
+        /// <summary>
+        /// Настройка параметров для построения графика
+        /// </summary>
+        /// <param name="gnuplot">Экземпляр GnuPlot</param>
+        private void SetGnuPlotParams(ref GnuPlot gnuplot) {
+            gnuplot.Set("dgrid3d 40,40 gauss .75", "pm3d");
             gnuplot.Set("title \"Interpolation\"", "xlabel \"X-Axis\"", "ylabel \"Y-Axis\"", "zlabel \"Z-Axis\"");
             gnuplot.Set("palette defined ( 0 \"blue\", 3 \"green\", 6 \"yellow\", 10 \"red\" )");
-
-            gnuplot.SPlot(xValues, yValues, exactValues, "title \"f(x,y)\" lc rgb \"purple\"");
-            gnuplot.SPlot(xValues, yValues, zValues_prev, "title \"G_p_r_e_v(A,x,y)\" lc rgb \"#fb8585\"");
-            gnuplot.SPlot(xValues, yValues, zValues, "title \"G(A,x,y)\" lc rgb \"#76c5f5\"");
         }
         #endregion
 
