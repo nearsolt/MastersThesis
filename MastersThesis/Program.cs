@@ -1,7 +1,7 @@
-namespace MastersThesis {
+﻿namespace MastersThesis {
     internal static class Program {
         /// <summary>
-        ///  The main entry point for the application.
+        /// Главная точка входа для приложения
         /// </summary>
         [STAThread]
         static void Main() {
@@ -9,17 +9,6 @@ namespace MastersThesis {
             Application.SetCompatibleTextRenderingDefault(false);
             Application.SetHighDpiMode(HighDpiMode.PerMonitor);
             Application.Run(new MainForm());
-
-#warning ToDo
-            /* 
-             * ToDo: 
-             *                 
-             *      MainForm.cs                   
-             *                          ExactSolution
-             *                          #warnings
-             *                          
-             *      GnuPlot.cs
-            */
         }
     }
 }

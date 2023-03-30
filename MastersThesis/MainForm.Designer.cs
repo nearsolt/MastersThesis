@@ -27,6 +27,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.groupBox_ribbon = new System.Windows.Forms.GroupBox();
             this.groupBox_axisNum = new System.Windows.Forms.GroupBox();
+            this.checkBox_combinedGraphs = new System.Windows.Forms.CheckBox();
             this.numericUpDown_xAxisNum = new System.Windows.Forms.NumericUpDown();
             this.label_yAxisNum = new System.Windows.Forms.Label();
             this.numericUpDown_yAxisNum = new System.Windows.Forms.NumericUpDown();
@@ -38,7 +39,6 @@
             this.numericUpDown_yAxisEnd = new System.Windows.Forms.NumericUpDown();
             this.label_yAxis = new System.Windows.Forms.Label();
             this.label_xAxis = new System.Windows.Forms.Label();
-            this.button_test = new System.Windows.Forms.Button();
             this.button_interpolation = new System.Windows.Forms.Button();
             this.checkBox_setDomainOfDefinition = new System.Windows.Forms.CheckBox();
             this.checkBox_tweenAnimation = new System.Windows.Forms.CheckBox();
@@ -75,7 +75,6 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox_ribbon.Controls.Add(this.groupBox_axisNum);
             this.groupBox_ribbon.Controls.Add(this.groupBox_domainOfDefinition);
-            this.groupBox_ribbon.Controls.Add(this.button_test);
             this.groupBox_ribbon.Controls.Add(this.button_interpolation);
             this.groupBox_ribbon.Controls.Add(this.checkBox_setDomainOfDefinition);
             this.groupBox_ribbon.Controls.Add(this.checkBox_tweenAnimation);
@@ -99,21 +98,33 @@
             // 
             // groupBox_axisNum
             // 
+            this.groupBox_axisNum.Controls.Add(this.checkBox_combinedGraphs);
             this.groupBox_axisNum.Controls.Add(this.numericUpDown_xAxisNum);
             this.groupBox_axisNum.Controls.Add(this.label_yAxisNum);
             this.groupBox_axisNum.Controls.Add(this.numericUpDown_yAxisNum);
             this.groupBox_axisNum.Controls.Add(this.label_xAxisNum);
-            this.groupBox_axisNum.Location = new System.Drawing.Point(611, 67);
+            this.groupBox_axisNum.Enabled = false;
+            this.groupBox_axisNum.Location = new System.Drawing.Point(481, 67);
             this.groupBox_axisNum.Margin = new System.Windows.Forms.Padding(0);
             this.groupBox_axisNum.Name = "groupBox_axisNum";
             this.groupBox_axisNum.Padding = new System.Windows.Forms.Padding(0);
-            this.groupBox_axisNum.Size = new System.Drawing.Size(190, 40);
+            this.groupBox_axisNum.Size = new System.Drawing.Size(320, 40);
             this.groupBox_axisNum.TabIndex = 19;
             this.groupBox_axisNum.TabStop = false;
             // 
+            // checkBox_combinedGraphs
+            // 
+            this.checkBox_combinedGraphs.AutoSize = true;
+            this.checkBox_combinedGraphs.Location = new System.Drawing.Point(194, 13);
+            this.checkBox_combinedGraphs.Name = "checkBox_combinedGraphs";
+            this.checkBox_combinedGraphs.Size = new System.Drawing.Size(121, 19);
+            this.checkBox_combinedGraphs.TabIndex = 26;
+            this.checkBox_combinedGraphs.Text = "Combined graphs";
+            this.checkBox_combinedGraphs.UseVisualStyleBackColor = true;
+            // 
             // numericUpDown_xAxisNum
             // 
-            this.numericUpDown_xAxisNum.Location = new System.Drawing.Point(34, 12);
+            this.numericUpDown_xAxisNum.Location = new System.Drawing.Point(32, 12);
             this.numericUpDown_xAxisNum.Maximum = new decimal(new int[] {
             2000,
             0,
@@ -136,7 +147,7 @@
             // label_yAxisNum
             // 
             this.label_yAxisNum.AutoSize = true;
-            this.label_yAxisNum.Location = new System.Drawing.Point(98, 14);
+            this.label_yAxisNum.Location = new System.Drawing.Point(96, 14);
             this.label_yAxisNum.Name = "label_yAxisNum";
             this.label_yAxisNum.Size = new System.Drawing.Size(24, 15);
             this.label_yAxisNum.TabIndex = 25;
@@ -144,7 +155,7 @@
             // 
             // numericUpDown_yAxisNum
             // 
-            this.numericUpDown_yAxisNum.Location = new System.Drawing.Point(126, 12);
+            this.numericUpDown_yAxisNum.Location = new System.Drawing.Point(124, 12);
             this.numericUpDown_yAxisNum.Maximum = new decimal(new int[] {
             2000,
             0,
@@ -167,7 +178,7 @@
             // label_xAxisNum
             // 
             this.label_xAxisNum.AutoSize = true;
-            this.label_xAxisNum.Location = new System.Drawing.Point(6, 14);
+            this.label_xAxisNum.Location = new System.Drawing.Point(4, 14);
             this.label_xAxisNum.Name = "label_xAxisNum";
             this.label_xAxisNum.Size = new System.Drawing.Size(24, 15);
             this.label_xAxisNum.TabIndex = 24;
@@ -181,18 +192,19 @@
             this.groupBox_domainOfDefinition.Controls.Add(this.numericUpDown_yAxisEnd);
             this.groupBox_domainOfDefinition.Controls.Add(this.label_yAxis);
             this.groupBox_domainOfDefinition.Controls.Add(this.label_xAxis);
-            this.groupBox_domainOfDefinition.Location = new System.Drawing.Point(117, 67);
+            this.groupBox_domainOfDefinition.Enabled = false;
+            this.groupBox_domainOfDefinition.Location = new System.Drawing.Point(102, 67);
             this.groupBox_domainOfDefinition.Margin = new System.Windows.Forms.Padding(0);
             this.groupBox_domainOfDefinition.Name = "groupBox_domainOfDefinition";
             this.groupBox_domainOfDefinition.Padding = new System.Windows.Forms.Padding(0);
-            this.groupBox_domainOfDefinition.Size = new System.Drawing.Size(385, 40);
+            this.groupBox_domainOfDefinition.Size = new System.Drawing.Size(376, 40);
             this.groupBox_domainOfDefinition.TabIndex = 2;
             this.groupBox_domainOfDefinition.TabStop = false;
             // 
             // numericUpDown_xAxisStart
             // 
             this.numericUpDown_xAxisStart.DecimalPlaces = 2;
-            this.numericUpDown_xAxisStart.Location = new System.Drawing.Point(54, 12);
+            this.numericUpDown_xAxisStart.Location = new System.Drawing.Point(52, 12);
             this.numericUpDown_xAxisStart.Maximum = new decimal(new int[] {
             2000,
             0,
@@ -215,7 +227,7 @@
             // numericUpDown_xAxisEnd
             // 
             this.numericUpDown_xAxisEnd.DecimalPlaces = 2;
-            this.numericUpDown_xAxisEnd.Location = new System.Drawing.Point(121, 12);
+            this.numericUpDown_xAxisEnd.Location = new System.Drawing.Point(119, 12);
             this.numericUpDown_xAxisEnd.Maximum = new decimal(new int[] {
             2000,
             0,
@@ -238,7 +250,7 @@
             // numericUpDown_yAxisStart
             // 
             this.numericUpDown_yAxisStart.DecimalPlaces = 2;
-            this.numericUpDown_yAxisStart.Location = new System.Drawing.Point(249, 12);
+            this.numericUpDown_yAxisStart.Location = new System.Drawing.Point(245, 12);
             this.numericUpDown_yAxisStart.Maximum = new decimal(new int[] {
             2000,
             0,
@@ -261,7 +273,7 @@
             // numericUpDown_yAxisEnd
             // 
             this.numericUpDown_yAxisEnd.DecimalPlaces = 2;
-            this.numericUpDown_yAxisEnd.Location = new System.Drawing.Point(316, 12);
+            this.numericUpDown_yAxisEnd.Location = new System.Drawing.Point(312, 12);
             this.numericUpDown_yAxisEnd.Maximum = new decimal(new int[] {
             2000,
             0,
@@ -284,7 +296,7 @@
             // label_yAxis
             // 
             this.label_yAxis.AutoSize = true;
-            this.label_yAxis.Location = new System.Drawing.Point(201, 14);
+            this.label_yAxis.Location = new System.Drawing.Point(197, 14);
             this.label_yAxis.Name = "label_yAxis";
             this.label_yAxis.Size = new System.Drawing.Size(44, 15);
             this.label_yAxis.TabIndex = 20;
@@ -293,28 +305,17 @@
             // label_xAxis
             // 
             this.label_xAxis.AutoSize = true;
-            this.label_xAxis.Location = new System.Drawing.Point(6, 14);
+            this.label_xAxis.Location = new System.Drawing.Point(4, 14);
             this.label_xAxis.Name = "label_xAxis";
             this.label_xAxis.Size = new System.Drawing.Size(44, 15);
             this.label_xAxis.TabIndex = 19;
             this.label_xAxis.Text = "X-Axis:";
             // 
-            // button_test
-            // 
-            this.button_test.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.button_test.Location = new System.Drawing.Point(467, 13);
-            this.button_test.Name = "button_test";
-            this.button_test.Size = new System.Drawing.Size(35, 22);
-            this.button_test.TabIndex = 6;
-            this.button_test.Text = "test";
-            this.button_test.UseVisualStyleBackColor = true;
-            this.button_test.Click += new System.EventHandler(this.Test_Click);
-            // 
             // button_interpolation
             // 
-            this.button_interpolation.Location = new System.Drawing.Point(515, 75);
+            this.button_interpolation.Location = new System.Drawing.Point(404, 12);
             this.button_interpolation.Name = "button_interpolation";
-            this.button_interpolation.Size = new System.Drawing.Size(90, 26);
+            this.button_interpolation.Size = new System.Drawing.Size(105, 26);
             this.button_interpolation.TabIndex = 18;
             this.button_interpolation.Text = "Interpolation";
             this.button_interpolation.UseVisualStyleBackColor = true;
@@ -335,7 +336,7 @@
             // checkBox_tweenAnimation
             // 
             this.checkBox_tweenAnimation.AutoSize = true;
-            this.checkBox_tweenAnimation.Location = new System.Drawing.Point(518, 45);
+            this.checkBox_tweenAnimation.Location = new System.Drawing.Point(524, 45);
             this.checkBox_tweenAnimation.Name = "checkBox_tweenAnimation";
             this.checkBox_tweenAnimation.Size = new System.Drawing.Size(116, 19);
             this.checkBox_tweenAnimation.TabIndex = 12;
@@ -357,7 +358,7 @@
             // checkBox_innerTriangleVisibility
             // 
             this.checkBox_innerTriangleVisibility.AutoSize = true;
-            this.checkBox_innerTriangleVisibility.Location = new System.Drawing.Point(648, 20);
+            this.checkBox_innerTriangleVisibility.Location = new System.Drawing.Point(648, 19);
             this.checkBox_innerTriangleVisibility.Name = "checkBox_innerTriangleVisibility";
             this.checkBox_innerTriangleVisibility.Size = new System.Drawing.Size(142, 19);
             this.checkBox_innerTriangleVisibility.TabIndex = 10;
@@ -368,7 +369,7 @@
             // checkBox_labelVisibility
             // 
             this.checkBox_labelVisibility.AutoSize = true;
-            this.checkBox_labelVisibility.Location = new System.Drawing.Point(518, 20);
+            this.checkBox_labelVisibility.Location = new System.Drawing.Point(524, 19);
             this.checkBox_labelVisibility.Name = "checkBox_labelVisibility";
             this.checkBox_labelVisibility.Size = new System.Drawing.Size(100, 19);
             this.checkBox_labelVisibility.TabIndex = 9;
@@ -378,7 +379,7 @@
             // 
             // numericUpDown_meshRefinementCoeff
             // 
-            this.numericUpDown_meshRefinementCoeff.Location = new System.Drawing.Point(346, 13);
+            this.numericUpDown_meshRefinementCoeff.Location = new System.Drawing.Point(341, 13);
             this.numericUpDown_meshRefinementCoeff.Maximum = new decimal(new int[] {
             10,
             0,
@@ -422,7 +423,7 @@
             // 
             // button_meshRefinement
             // 
-            this.button_meshRefinement.Location = new System.Drawing.Point(398, 42);
+            this.button_meshRefinement.Location = new System.Drawing.Point(404, 42);
             this.button_meshRefinement.Name = "button_meshRefinement";
             this.button_meshRefinement.Size = new System.Drawing.Size(105, 26);
             this.button_meshRefinement.TabIndex = 5;
@@ -432,7 +433,7 @@
             // 
             // button_delaunayTriangulation
             // 
-            this.button_delaunayTriangulation.Location = new System.Drawing.Point(253, 42);
+            this.button_delaunayTriangulation.Location = new System.Drawing.Point(257, 42);
             this.button_delaunayTriangulation.Name = "button_delaunayTriangulation";
             this.button_delaunayTriangulation.Size = new System.Drawing.Size(135, 26);
             this.button_delaunayTriangulation.TabIndex = 4;
@@ -442,7 +443,7 @@
             // 
             // button_greedyTriangulation
             // 
-            this.button_greedyTriangulation.Location = new System.Drawing.Point(117, 42);
+            this.button_greedyTriangulation.Location = new System.Drawing.Point(119, 42);
             this.button_greedyTriangulation.Name = "button_greedyTriangulation";
             this.button_greedyTriangulation.Size = new System.Drawing.Size(125, 26);
             this.button_greedyTriangulation.TabIndex = 3;
@@ -463,7 +464,7 @@
             // label_meshRefinementCoeff
             // 
             this.label_meshRefinementCoeff.AutoSize = true;
-            this.label_meshRefinementCoeff.Location = new System.Drawing.Point(183, 15);
+            this.label_meshRefinementCoeff.Location = new System.Drawing.Point(178, 15);
             this.label_meshRefinementCoeff.Name = "label_meshRefinementCoeff";
             this.label_meshRefinementCoeff.Size = new System.Drawing.Size(159, 15);
             this.label_meshRefinementCoeff.TabIndex = 1;
@@ -483,7 +484,7 @@
             this.pictureBox_mainPic.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.pictureBox_mainPic.Location = new System.Drawing.Point(5, 115);
+            this.pictureBox_mainPic.Location = new System.Drawing.Point(3, 115);
             this.pictureBox_mainPic.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.pictureBox_mainPic.Name = "pictureBox_mainPic";
             this.pictureBox_mainPic.Size = new System.Drawing.Size(805, 420);
@@ -536,7 +537,6 @@
         private Label label_numberOfNodes;
         private Button button_greedyTriangulation;
         private Button button_delaunayTriangulation;
-        private Button button_test;
         private Button button_meshRefinement;
         private NumericUpDown numericUpDown_meshRefinementCoeff;
         private NumericUpDown numericUpDown_numberOfNodes;
@@ -559,5 +559,6 @@
         private NumericUpDown numericUpDown_xAxisNum;
         private GroupBox groupBox_domainOfDefinition;
         private GroupBox groupBox_axisNum;
+        private CheckBox checkBox_combinedGraphs;
     }
 }

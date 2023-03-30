@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Xml;
+using System.Diagnostics;
 using static MastersThesis.MainForm.PlanarObjectStore;
 using static MastersThesis.MeshStore;
 
@@ -60,11 +61,11 @@ namespace MastersThesis {
         /// </summary>
         private double _yAxisEnd;
         /// <summary>
-        /// Коэффициэнт растяжения для ширины в pictureBox_mainPic
+        /// Коэффициент растяжения для ширины в pictureBox_mainPic
         /// </summary>
         private double _widthScalingCoeff;
         /// <summary>
-        /// Коэффициэнт растяжения для высоты в pictureBox_mainPic
+        /// Коэффициент растяжения для высоты в pictureBox_mainPic
         /// </summary>
         private double _heightScalingCoeff;
         /// <summary>
@@ -103,20 +104,24 @@ namespace MastersThesis {
         /// Список треугольников (TriangleStore) для использования в методе измельчения
         /// </summary>
         private List<TriangleStore> _triangleStoreList = new List<TriangleStore>();
+        /// <summary>
+        /// Путь к приложению GnuPlot
+        /// </summary>
+        private string? _gnuplotPath;
         #endregion
 
         #region Exact Solution
         /// <summary>
         /// Точное значение функции f(x,y)
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
+        /// <param name="x">Значение x</param>
+        /// <param name="y">Значение y</param>
         /// <returns></returns>
         private static double ExactSolution(double x, double y) {
-            //return Math.Sin(x) * y + x * Math.Cos(y) + x + y;
-            //return 0.1 * (Math.Pow(x, 2) - Math.Pow(y - 10, 2)) - 2 * x * Math.Cos(y) - Math.Sin(y);
-
             return Math.Cos(x) * Math.Sin(0.5 * y) * x + y;
+
+            // Функция Матьяса
+            //return 0.26 * (x * x + y * y) - 0.48 * x * y;
         }
         #endregion
 
@@ -186,10 +191,8 @@ namespace MastersThesis {
         }
         private void SetDomainOfDefinition_CheckedChanged(object sender, EventArgs e) {
             if (checkBox_setDomainOfDefinition.Checked) {
-                groupBox_domainOfDefinition.Visible = true;
                 groupBox_domainOfDefinition.Enabled = true;
             } else {
-                groupBox_domainOfDefinition.Visible = false;
                 groupBox_domainOfDefinition.Enabled = false;
             }
         }
@@ -206,7 +209,7 @@ namespace MastersThesis {
         }
         private void GreedyTriangulation_Click(object sender, EventArgs e) {
             if (_applicationState == ApplicationState.MeshRefinement) {
-                MessageBox.Show("Построение жадной триангуляции недоступно после применения метода измельчения. Сгенерируйте множество узлов еще раз.", "Information",
+                MessageBox.Show("Построение жадной триангуляции недоступно после применения метода измельчения. Сгенерируйте множество узлов еще раз.", "Информация",
                                 MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
                 return;
             }
@@ -218,7 +221,7 @@ namespace MastersThesis {
         }
         private void DelaunayTriangulation_Click(object sender, EventArgs e) {
             if (_applicationState == ApplicationState.MeshRefinement) {
-                MessageBox.Show("Построение триангуляции Делоне недоступно после применения метода измельчения. Сгенерируйте множество узлов еще раз.", "Information",
+                MessageBox.Show("Построение триангуляции Делоне недоступно после применения метода измельчения. Сгенерируйте множество узлов еще раз.", "Информация",
                                 MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
                 return;
             }
@@ -228,7 +231,7 @@ namespace MastersThesis {
         }
         private void MeshRefinement_Click(object sender, EventArgs e) {
             if (_applicationState != ApplicationState.DelaunayTriangulation) {
-                MessageBox.Show("Построение триангуляции методом измельчения доступно только после триангуляции Делоне.", "Information",
+                MessageBox.Show("Построение триангуляции методом измельчения доступно только после триангуляции Делоне.", "Информация",
                                 MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
                 return;
             }
@@ -238,9 +241,17 @@ namespace MastersThesis {
         }
         private void Interpolation_Click(object sender, EventArgs e) {
             if (_applicationState != ApplicationState.DelaunayTriangulation && _applicationState != ApplicationState.MeshRefinement) {
-                MessageBox.Show("Построение интерполяции доступно только после триангуляции Делоне или применения метода измельчения.", "Information",
+                MessageBox.Show("Построение интерполяции доступно только после триангуляции Делоне или применения метода измельчения.", "Информация",
                                 MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
                 return;
+            }
+
+            if (_gnuplotPath == null) {
+                GetGnuPlotPath();
+            }
+            if (_gnuplotPath == null) {
+                MessageBox.Show("Построение графиков не доступно: отсутствует доступ к приложению GnuPlot. Будут представлены только численнные результаты аппроксимации функции.",
+                                "Предупреждение", MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
             }
             button_interpolation.Enabled = false;
             Interpolation();
@@ -252,9 +263,9 @@ namespace MastersThesis {
 
         #region Methods
 
-        #region Initialization & Triangulation
+        #region Initialization
         /// <summary>
-        /// Инициализация области определения и коэффициэнтов растяжения ширины и высоты в pictureBox_mainPic
+        /// Инициализация области определения и коэффициентов растяжения ширины и высоты в pictureBox_mainPic
         /// </summary>
         /// <param name="isValidated">Проверка на корректность инициализации области</param>
         private void InitializeDomainOfDefinition(out bool isValidated) {
@@ -266,13 +277,13 @@ namespace MastersThesis {
                 _yAxisEnd = (double)numericUpDown_yAxisEnd.Value;
 
                 if (_xAxisStart >= _xAxisEnd) {
-                    MessageBox.Show($"При инициализации области были введены некорректные днные: xAxisStart >= xAxisEnd ({_xAxisStart} >= {_xAxisEnd}).", "Information",
+                    MessageBox.Show($"При инициализации области были введены некорректные данные: xAxisStart >= xAxisEnd ({_xAxisStart} >= {_xAxisEnd}).", "Информация",
                                     MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
                     isValidated = false;
                     return;
                 }
                 if (_yAxisStart >= _yAxisEnd) {
-                    MessageBox.Show($"При инициализации области были введены некорректные днные: yAxisStart >= yAxisEnd ({_yAxisStart} >= {_yAxisEnd}).", "Information",
+                    MessageBox.Show($"При инициализации области были введены некорректные данные: yAxisStart >= yAxisEnd ({_yAxisStart} >= {_yAxisEnd}).", "Информация",
                                     MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
                     isValidated = false;
                     return;
@@ -312,6 +323,44 @@ namespace MastersThesis {
             pictureBox_mainPic.Refresh();
         }
         /// <summary>
+        /// Получение пути к приложению GnuPlot из конфигурационного файла
+        /// </summary>
+        private void GetGnuPlotPath() {
+            try {
+                XmlDocument config = new XmlDocument();
+                config.Load("GnuPlot.config");
+                XmlElement? root = config.DocumentElement;
+
+                if (root == null) {
+                    throw new Exception("в config файле отсутствует корневой элемент. Воспользуйтесь корректным конфигурационным файлом.");
+                }
+
+                XmlNode? pathNode = root.SelectSingleNode("GnuPlotPath");
+
+                if (pathNode == null) {
+                    throw new Exception("в config файле отсутствует тег <GnuPlotPath>. Воспользуйтесь корректным конфигурационным файлом.");
+                }
+
+                string path = pathNode.InnerText;
+
+                if (!new FileInfo(path).Exists) {
+                    throw new Exception($"в config файле в теге <GnuPlotPath> указан некорректный путь к приложению GnuPlot:\n{path}\nВведите корректные данные.");
+                }
+
+                _gnuplotPath = $@"{path}";
+
+            } catch (Exception ex) {
+                _gnuplotPath = null;
+                DebugLog("Error", $"GetGnuPlotPath: при получении данных из конфигурационного файла произошла ошибка.\n{ex}.");
+                MessageBox.Show($"При получении данных из конфигурационного файла произошла ошибка:\n{ex.Message}.", "Ошибка",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
+
+            }
+        }
+        #endregion
+
+        #region Triangulation
+        /// <summary>
         /// Random-генерация узлов в используемой области
         /// </summary>
         private void GenerateRandomNodes() {
@@ -320,6 +369,7 @@ namespace MastersThesis {
                 return;
             }
             _applicationState = ApplicationState.NodeGeneration;
+            groupBox_axisNum.Enabled = false;
             int nodeCount = (int)numericUpDown_numberOfNodes.Value;
 
             _nodeStoreList.Clear();
@@ -353,6 +403,7 @@ namespace MastersThesis {
         /// </summary>
         private void GreedyTriangulation() {
             _applicationState = ApplicationState.GreedyTriangulation;
+            groupBox_axisNum.Enabled = false;
             _animationCounter = 0;
 
             _triangulation.EdgeList.Clear();
@@ -370,12 +421,8 @@ namespace MastersThesis {
             _triangulation.AnimationList = outputAnimationList;
             pictureBox_mainPic.Refresh();
 
-            #region Debug
-#warning w1: remove logger
-            int nLC = _triangulation.NodeList.Count;
-            int eLC = _triangulation.EdgeList.Count;
-            int tLC = _triangulation.TriangleList.Count;
-            Debug.WriteLine($"GT:\tnodeListCount: {nLC}\tedgeListCount: {eLC}\ttriangleListCount: {tLC}\tidentity (n-e+t=1): {nLC - eLC + tLC == 1}");
+            #region Debug Logger
+            DebugLog("Info", $"GT: nodeListCount: {_triangulation.NodeList.Count}; edgeListCount: {_triangulation.EdgeList.Count}.");
             #endregion
         }
         /// <summary>
@@ -383,6 +430,7 @@ namespace MastersThesis {
         /// </summary>
         private void DelaunayTriangulation() {
             _applicationState = ApplicationState.DelaunayTriangulation;
+            groupBox_axisNum.Enabled = true;
             _animationCounter = 0;
 
             _triangulation.EdgeList.Clear();
@@ -403,12 +451,11 @@ namespace MastersThesis {
             _triangulation.AnimationList = outputAnimationList;
             pictureBox_mainPic.Refresh();
 
-            #region Debug
-#warning w1: remove logger            
+            #region Debug Logger            
             int nLC = _triangulation.NodeList.Count;
             int eLC = _triangulation.EdgeList.Count;
             int tLC = _triangulation.TriangleList.Count;
-            Debug.WriteLine($"DT:\tnodeListCount: {nLC}\tedgeListCount: {eLC}\ttriangleListCount: {tLC}\tidentity (n-e+t=1): {nLC - eLC + tLC == 1}");
+            DebugLog("Info", $"DT: nodeListCount: {nLC}; edgeListCount: {eLC}; triangleListCount: {tLC}; identity (n-e+t=1): {nLC - eLC + tLC == 1}.");
             #endregion
         }
         /// <summary>
@@ -433,33 +480,32 @@ namespace MastersThesis {
             _triangulation.AnimationList = outputAnimationList;
             pictureBox_mainPic.Refresh();
 
-            #region Debug
-#warning w1: remove logger            
+            #region Debug Logger            
             int nLC_p = _parentTriangulation.NodeList.Count;
             int eLC_p = _parentTriangulation.EdgeList.Count;
             int tLC_p = _parentTriangulation.TriangleList.Count;
-            Debug.WriteLine($"MR_prev:\tnodeListCount: {nLC_p}\tedgeListCount: {eLC_p}\ttriangleListCount: {tLC_p}\tidentity (n-e+t=1): {nLC_p - eLC_p + tLC_p == 1}");
+            DebugLog("Info", $"MR_prev: nodeListCount: {nLC_p}; edgeListCount: {eLC_p}; triangleListCount: {tLC_p}; identity (n-e+t=1): {nLC_p - eLC_p + tLC_p == 1}.");
             int nLC = _triangulation.NodeList.Count;
             int eLC = _triangulation.EdgeList.Count;
             int tLC = _triangulation.TriangleList.Count;
-            Debug.WriteLine($"MR_cur:\t\tnodeListCount: {nLC}\tedgeListCount: {eLC}\ttriangleListCount: {tLC}\tidentity (n-e+t=1): {nLC - eLC + tLC == 1}");
+            DebugLog("Info", $"MR_cur:  nodeListCount: {nLC}; edgeListCount: {eLC}; triangleListCount: {tLC}; identity (n-e+t=1): {nLC - eLC + tLC == 1}.");
             #endregion
         }
         #endregion
 
         #region Approximation
         /// <summary>
-        /// Вычисление обратной лямбда функции \Lambda_j^{-1},
-        /// используя метод алгебраических дополнений, где              / 1  x_1^j  y_1^j \
-        ///                                                \Lambda_j = |  1  x_2^j  y_2^j  |
-        ///                                                             \ 1  x_3^j  y_3^j /
+        /// Вычисление обратной функции T_j^{-1},
+        /// используя метод алгебраических дополнений, где        / 1  x_1^j  y_1^j \
+        ///                                                T_j = |  1  x_2^j  y_2^j  |
+        ///                                                       \ 1  x_3^j  y_3^j /
         /// </summary>
         /// <param name="firstNode">Первый узел треугольника</param>
         /// <param name="secondNode">Второй узел треугольника</param>
         /// <param name="thirdNode">Третий узел треугольника</param>
         /// <returns></returns>
-        private static double[,] InverseLambdaFunction(Node firstNode, Node secondNode, Node thirdNode) {
-            double[,] inverseLambda = new double[3, 3];
+        private static double[,] InverseTJFunction(Node firstNode, Node secondNode, Node thirdNode) {
+            double[,] inverseTJ = new double[3, 3];
 
             double x1 = firstNode.XCoordinate;
             double y1 = firstNode.YCoordinate;
@@ -472,25 +518,25 @@ namespace MastersThesis {
 
             double det = x2 * y3 + x1 * y2 + y1 * x3 - y1 * x2 - y2 * x3 - x1 * y3;
 
-            inverseLambda[0, 0] = (x2 * y3 - y2 * x3) / det;
-            inverseLambda[0, 1] = (y1 * x3 - x1 * y3) / det;
-            inverseLambda[0, 2] = (x1 * y2 - y1 * x2) / det;
+            inverseTJ[0, 0] = (x2 * y3 - y2 * x3) / det;
+            inverseTJ[0, 1] = (y1 * x3 - x1 * y3) / det;
+            inverseTJ[0, 2] = (x1 * y2 - y1 * x2) / det;
 
-            inverseLambda[1, 0] = (y2 - y3) / det;
-            inverseLambda[1, 1] = (y3 - y1) / det;
-            inverseLambda[1, 2] = (y1 - y2) / det;
+            inverseTJ[1, 0] = (y2 - y3) / det;
+            inverseTJ[1, 1] = (y3 - y1) / det;
+            inverseTJ[1, 2] = (y1 - y2) / det;
 
-            inverseLambda[2, 0] = (x3 - x2) / det;
-            inverseLambda[2, 1] = (x1 - x3) / det;
-            inverseLambda[2, 2] = (x2 - x1) / det;
+            inverseTJ[2, 0] = (x3 - x2) / det;
+            inverseTJ[2, 1] = (x1 - x3) / det;
+            inverseTJ[2, 2] = (x2 - x1) / det;
 
-            return inverseLambda;
+            return inverseTJ;
         }
         /// <summary>
-        /// Вычисление функции веса w_j:    w_j(A,x,y) = 1/ ( (x-x_0^j)^2 + (y-y_0^j)^2 ),
+        /// Вычисление функции веса w_j: w_j(A,x,y) = 1/ ( (x-x_0^j)^2 + (y-y_0^j)^2 ),
         /// где p=2,
         ///     (x,y) - текущая точка,
-        ///     (x_0^j,y_0^j) - геометрический центр j-го треугольника
+        ///     (x_0^j,y_0^j) - геометрический центр треугольника T_j
         /// </summary>
         /// <param name="curXCoord">Координата x текущей точки</param>
         /// <param name="curYCoord">Координата y текущей точки</param>
@@ -501,12 +547,12 @@ namespace MastersThesis {
             return 1 / ((curXCoord - geoCenterXCoord) * (curXCoord - geoCenterXCoord) + (curYCoord - geoCenterYCoord) * (curYCoord - geoCenterYCoord));
         }
         /// <summary>
-        /// Вычисление аппроксимирующей функции G_j(A,x,y) в пределах j-го треугольника:         
-        ///                                                              / z_1^j \
-        ///                 G_j(A,x,y) = ( 1  x  y ) * \Lambda_j^{-1} * |  z_2^j  | ,
-        ///                                                              \ z_3^j /
+        /// Вычисление аппроксимирующей функции G_j(A,x,y) в пределах треугольника T_j:         
+        ///                                                        / z_1^j \
+        ///                 G_j(A,x,y) = ( 1  x  y ) * T_j^{-1} * |  z_2^j  | ,
+        ///                                                        \ z_3^j /
         /// где (x,y) - текущая точка,
-        ///     (x_k^j  y_k^j)_{k=1}^3 - узлы j-го треугольника,
+        ///     (x_k^j  y_k^j)_{k=1}^3 - узлы треугольника T_j,
         ///     (z_k^j)_{k=1}^3 - экспериментальные значения функции f(x,y) в данных узлах
         /// </summary>
         /// <param name="data">Массив значений ( 1  x  y )</param>
@@ -518,12 +564,12 @@ namespace MastersThesis {
         private static double GJFunction(double[] data, Node firstNode, Node secondNode, Node thirdNode, double[] functionValues) {
             double result = 0;
             double[] tmp = new double[3];
-            double[,] inverseLambda = InverseLambdaFunction(firstNode, secondNode, thirdNode);
+            double[,] inverseTJ = InverseTJFunction(firstNode, secondNode, thirdNode);
 
             for (int j = 0; j < 3; j++) {
                 tmp[j] = 0;
                 for (int k = 0; k < 3; k++) {
-                    tmp[j] += data[k] * inverseLambda[k, j];
+                    tmp[j] += data[k] * inverseTJ[k, j];
                 }
             }
             for (int j = 0; j < 3; j++) {
@@ -560,7 +606,7 @@ namespace MastersThesis {
 
         #region Interpolation
         /// <summary>
-        /// Построение функции f(x,y) и построение интерполяций аппроксимирующих функций 
+        /// Построение интерполяций функции f(x,y) и аппроксимирующих функций 
         ///     G(A,x,y) - для текущей триангуляции, 
         ///     G_{prev}(A,x,y) - для parent триангуляции Делоне (если была построена триангуляция методом измельчения)
         /// </summary>
@@ -595,7 +641,7 @@ namespace MastersThesis {
 
                         tmpApproxError = Math.Abs(exactValues[index] - zValues[index]);
 
-                        if(tmpApproxError > maxApproxError) {
+                        if (tmpApproxError > maxApproxError) {
                             maxApproxError = tmpApproxError;
                         }
                         index++;
@@ -603,11 +649,16 @@ namespace MastersThesis {
                 }
                 info = $"[{_xAxisStart};{_xAxisEnd}]x[{_yAxisStart};{_yAxisEnd}]: {nameof(hX)}={hX}; {nameof(hY)}={hY}\n{nameof(maxApproxError)} = {maxApproxError}";
 
-                #region Debug
-#warning w1: remove logger
-                DebugLog("Info", $"GnuPlot DT: {info}\n");
+                if (_gnuplotPath != null) {
+                    Thread thread = new Thread(() => PlotFunctionGraphs(xValues, yValues, exactValues, zValues, _gnuplotPath, checkBox_combinedGraphs.Checked));
+                    thread.Start();
+                }
+
+                #region Debug Logger
+                DebugLog("Info", $"GnuPlot DT: {info}.");
                 #endregion
             }
+
             if (_applicationState == ApplicationState.MeshRefinement) {
                 double tmpApproxError_prev;
                 double maxApproxError_prev = 0;
@@ -636,16 +687,39 @@ namespace MastersThesis {
                 info = $"[{_xAxisStart};{_xAxisEnd}]x[{_yAxisStart};{_yAxisEnd}]: {nameof(hX)}={hX}; {nameof(hY)}={hY}\n" +
                        $"{nameof(maxApproxError_prev)} = {maxApproxError_prev}\n{nameof(maxApproxError)} = {maxApproxError}";
 
-                #region Debug
-#warning w1: remove logger
-                DebugLog("Info", $"GnuPlot MR: {info}\n");
+                if (_gnuplotPath != null) {
+                    Thread thread = new Thread(() => PlotFunctionGraphs(xValues, yValues, exactValues, zValues_prev, zValues, _gnuplotPath, checkBox_combinedGraphs.Checked));
+                    thread.Start();
+                }
+
+                #region Debug Logger
+                DebugLog("Info", $"GnuPlot MR: {info}.");
                 #endregion
             }
 
-            Thread thread = new Thread(() => PlotFunctionGraphs(xValues, yValues, exactValues, zValues_prev, zValues));
-            thread.Start();
+            MessageBox.Show($"Результаты аппроксимации функции f(x,y):\n{info}.", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+        }
+        /// <summary>
+        /// Построение графиков функции f(x,y) и аппроксимирующей функции G(A,x,y) с использованием GnuPlot
+        /// </summary>
+        /// <param name="xValues">Массив значений x</param>
+        /// <param name="yValues">Массив значений y</param>
+        /// <param name="exactValues">Массив значений f(x,y)</param>
+        /// <param name="zValues">Массив значений z</param>
+        /// <param name="gnuplotPath">Путь к приложению GnuPlot</param>
+        /// <param name="combinedGraphs">Построение графиков в одном окне GnuPlot</param>
+        private void PlotFunctionGraphs(double[] xValues, double[] yValues, double[] exactValues, double[] zValues, string gnuplotPath, bool combinedGraphs) {
+            GnuPlot gnuplot = new GnuPlot(gnuplotPath);
+            SetGnuPlotParams(ref gnuplot);
+            gnuplot.SPlot(xValues, yValues, exactValues, "title \"f(x,y)\" lc rgb \"purple\"");
 
-            MessageBox.Show($"Результаты построения интерполяции:\n{info}.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+            if (combinedGraphs) {
+                gnuplot.SPlot(xValues, yValues, zValues, "title \"G(A,x,y)\" lc rgb \"#76c5f5\"");
+            } else {
+                GnuPlot gnuplot2 = new GnuPlot(gnuplotPath);
+                SetGnuPlotParams(ref gnuplot2);
+                gnuplot2.SPlot(xValues, yValues, zValues, "title \"G(A,x,y)\" lc rgb \"#76c5f5\"");
+            }
         }
         /// <summary>
         /// Построение графиков функции f(x,y) и аппроксимирующих функций G(A,x,y), G_{prev}(A,x,y) с использованием GnuPlot
@@ -655,33 +729,49 @@ namespace MastersThesis {
         /// <param name="exactValues">Массив значений f(x,y)</param>
         /// <param name="zValues_prev">Массив значений z_prev</param>
         /// <param name="zValues">Массив значений z</param>
-        private void PlotFunctionGraphs(double[] xValues, double[] yValues, double[] exactValues, double[] zValues_prev, double[] zValues) {
-            GnuPlot.Set("dgrid3d 50,50, qnorm 2");
-            GnuPlot.Set("title \"Interpolation\"");
-            GnuPlot.Set("xlabel \"X-Axis\"", "ylabel \"Y-Axis\"", "zlabel \"Z-Axis\"");
-            GnuPlot.Set("pm3d");
-            GnuPlot.Set("palette defined ( 0 \"blue\", 3 \"green\", 6 \"yellow\", 10 \"red\" )");
-            GnuPlot.HoldOn();
+        /// <param name="gnuplotPath">Путь к приложению GnuPlot</param>
+        /// <param name="combinedGraphs">Построение графиков в одном окне GnuPlot</param>
+        private void PlotFunctionGraphs(double[] xValues, double[] yValues, double[] exactValues, double[] zValues_prev, double[] zValues, string gnuplotPath, bool combinedGraphs) {
+            GnuPlot gnuplot = new GnuPlot(gnuplotPath);
+            SetGnuPlotParams(ref gnuplot);
+            gnuplot.SPlot(xValues, yValues, exactValues, "title \"f(x,y)\" lc rgb \"purple\"");
 
-            GnuPlot.SPlot(xValues, yValues, exactValues, "title \"f(x,y)\" lc rgb \"purple\"");
+            if (combinedGraphs) {
+                gnuplot.SPlot(xValues, yValues, zValues_prev, "title \"G_p_r_e_v(A,x,y)\" lc rgb \"#fb8585\"");
+                gnuplot.SPlot(xValues, yValues, zValues, "title \"G(A,x,y)\" lc rgb \"#76c5f5\"");
+            } else {
+                GnuPlot gnuplot2 = new GnuPlot(gnuplotPath);
+                SetGnuPlotParams(ref gnuplot2);
+                gnuplot2.SPlot(xValues, yValues, zValues_prev, "title \"G_p_r_e_v(A,x,y)\" lc rgb \"#fb8585\"");
 
-            if (_applicationState == ApplicationState.MeshRefinement) {
-                GnuPlot.SPlot(xValues, yValues, zValues_prev, "title \"G_p_r_e_v(A,x,y)\" lc rgb  \"#fb8585\"");
+                GnuPlot gnuplot3 = new GnuPlot(gnuplotPath);
+                SetGnuPlotParams(ref gnuplot3);
+                gnuplot3.SPlot(xValues, yValues, zValues, "title \"G(A,x,y)\" lc rgb \"#76c5f5\"");
             }
-
-            GnuPlot.SPlot(xValues, yValues, zValues, "title \"G(A,x,y)\" lc rgb  \"#76c5f5\"");
+        }
+        /// <summary>
+        /// Настройка параметров для построения графика
+        /// </summary>
+        /// <param name="gnuplot">Экземпляр GnuPlot</param>
+        private void SetGnuPlotParams(ref GnuPlot gnuplot) {
+            gnuplot.Set("dgrid3d 40,40 gauss .75", "pm3d");
+            gnuplot.Set("title \"Interpolation\"", "xlabel \"X-Axis\"", "ylabel \"Y-Axis\"", "zlabel \"Z-Axis\"");
+            gnuplot.Set("palette defined ( 0 \"blue\", 3 \"green\", 6 \"yellow\", 10 \"red\" )");
+            gnuplot.Set($"xrange[{_xAxisStart.ToString().Replace(',', '.')}:{_xAxisEnd.ToString().Replace(',', '.')}]");
+            gnuplot.Set($"yrange[{_yAxisStart.ToString().Replace(',', '.')}:{_yAxisEnd.ToString().Replace(',', '.')}]");
         }
         #endregion
 
         #endregion
 
-        #region Test Button & Debug
-#warning To do: remove from the final version with control (button_test visible = false)
+        #region Test & Debug
+        /// <summary>
+        /// Логгер
+        /// </summary>
+        /// <param name="type">Тип сообщения</param>
+        /// <param name="message">Сообщение</param>
         internal static void DebugLog(string type, string message) {
-            File.AppendAllText(@"D:\mechmath\.Master's Thesis\logger.log", $"{DateTime.Now} {type}: {message}\n");
-        }
-        private void Test_Click(object sender, EventArgs e) {
-
+            File.AppendAllText("debug.log", $"{DateTime.Now} {type}: {message}\n");
         }
         #endregion
     }
