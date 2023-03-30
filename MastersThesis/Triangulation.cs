@@ -371,7 +371,7 @@ namespace MastersThesis {
             }
         }
         /// <summary>
-        /// Удаление треугольник
+        /// Удаление треугольника
         /// </summary>
         /// <param name="triangleID">ID треугольника</param>
         private void RemoveTriangle(int triangleID) {
@@ -472,21 +472,21 @@ namespace MastersThesis {
                 }
             }
             // Левый кандидат найден
-            bool isFoundLeftCandidate = Helper.LeftOf(leftCandidate.SecondNode, baseLREdge);
+            bool isLeftCandidateFound = Helper.LeftOf(leftCandidate.SecondNode, baseLREdge);
             // Правый кандидат найден
-            bool isFoundRightCandidate = Helper.RightOf(rightCandidate.SecondNode, baseLREdge_symm);
+            bool isRightCandidateFound = Helper.RightOf(rightCandidate.SecondNode, baseLREdge_symm);
 
             // шаг 3.3
-            if (isFoundLeftCandidate && isFoundRightCandidate) {
+            if (isLeftCandidateFound && isRightCandidateFound) {
                 //  если найдены оба кандидата, выполняем проверку через уравнение описанной окружности
                 if (Helper.InCircle(baseLREdge.FirstNode, baseLREdge.SecondNode, leftCandidate.SecondNode, rightCandidate.SecondNode)) {
                     AddEdgeWithTriangle(baseLREdge.FirstNode, rightCandidate.SecondNode);
                 } else {
                     AddEdgeWithTriangle(leftCandidate.SecondNode, baseLREdge_symm.FirstNode);
                 }
-            } else if (isFoundLeftCandidate) {
+            } else if (isLeftCandidateFound) {
                 AddEdgeWithTriangle(leftCandidate.SecondNode, baseLREdge_symm.FirstNode);
-            } else if (isFoundRightCandidate) {
+            } else if (isRightCandidateFound) {
                 AddEdgeWithTriangle(baseLREdge.FirstNode, rightCandidate.SecondNode);
             } else {
                 return;
@@ -663,18 +663,6 @@ namespace MastersThesis {
 
                 Tuple<EdgeStore, List<NodeStore>, bool> tuple2 = new Tuple<EdgeStore, List<NodeStore>, bool>(triangle.SecondEdge, new List<NodeStore>(), isReverseEdge2);
                 GetIntermediateNodes(ref tuple2, decimalPlaces, meshRefinementCoeff, ref nextNodeID);
-
-                /*                       . <- общий узел первых двух ребер
-                 *                      /|\
-                 *                     / v \
-                 *                    * ~~~ *  <- Внутренние узлы ребер
-                 *                   /   |   \
-                 *                       |<- итерации по проходу
-                 *                 v     v     v
-                 *   1ое ребро -> . ~~~~~~~~~~~ . <- 2ое ребро
-                 *   
-                 *   Далее через цикл пройдем через все подобные треугольники, двигаясь от общей точки к третьему ребру
-                */
 
                 // 0-я итерация
                 // Список узлов (узлы расположены на ребре, ||-ом третьему ребру), на предыдущей итерации (на 0-ой итерации - список содержит один узел - общий узел)

@@ -61,11 +61,11 @@ namespace MastersThesis {
         /// </summary>
         private double _yAxisEnd;
         /// <summary>
-        /// Коэффициэнт растяжения для ширины в pictureBox_mainPic
+        /// Коэффициент растяжения для ширины в pictureBox_mainPic
         /// </summary>
         private double _widthScalingCoeff;
         /// <summary>
-        /// Коэффициэнт растяжения для высоты в pictureBox_mainPic
+        /// Коэффициент растяжения для высоты в pictureBox_mainPic
         /// </summary>
         private double _heightScalingCoeff;
         /// <summary>
@@ -114,8 +114,8 @@ namespace MastersThesis {
         /// <summary>
         /// Точное значение функции f(x,y)
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
+        /// <param name="x">Значение x</param>
+        /// <param name="y">Значение y</param>
         /// <returns></returns>
         private static double ExactSolution(double x, double y) {
             return Math.Cos(x) * Math.Sin(0.5 * y) * x + y;
@@ -265,7 +265,7 @@ namespace MastersThesis {
 
         #region Initialization
         /// <summary>
-        /// Инициализация области определения и коэффициэнтов растяжения ширины и высоты в pictureBox_mainPic
+        /// Инициализация области определения и коэффициентов растяжения ширины и высоты в pictureBox_mainPic
         /// </summary>
         /// <param name="isValidated">Проверка на корректность инициализации области</param>
         private void InitializeDomainOfDefinition(out bool isValidated) {
@@ -277,13 +277,13 @@ namespace MastersThesis {
                 _yAxisEnd = (double)numericUpDown_yAxisEnd.Value;
 
                 if (_xAxisStart >= _xAxisEnd) {
-                    MessageBox.Show($"При инициализации области были введены некорректные днные: xAxisStart >= xAxisEnd ({_xAxisStart} >= {_xAxisEnd}).", "Информация",
+                    MessageBox.Show($"При инициализации области были введены некорректные данные: xAxisStart >= xAxisEnd ({_xAxisStart} >= {_xAxisEnd}).", "Информация",
                                     MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
                     isValidated = false;
                     return;
                 }
                 if (_yAxisStart >= _yAxisEnd) {
-                    MessageBox.Show($"При инициализации области были введены некорректные днные: yAxisStart >= yAxisEnd ({_yAxisStart} >= {_yAxisEnd}).", "Информация",
+                    MessageBox.Show($"При инициализации области были введены некорректные данные: yAxisStart >= yAxisEnd ({_yAxisStart} >= {_yAxisEnd}).", "Информация",
                                     MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
                     isValidated = false;
                     return;
@@ -536,7 +536,7 @@ namespace MastersThesis {
         /// Вычисление функции веса w_j: w_j(A,x,y) = 1/ ( (x-x_0^j)^2 + (y-y_0^j)^2 ),
         /// где p=2,
         ///     (x,y) - текущая точка,
-        ///     (x_0^j,y_0^j) - геометрический центр j-го треугольника
+        ///     (x_0^j,y_0^j) - геометрический центр треугольника T_j
         /// </summary>
         /// <param name="curXCoord">Координата x текущей точки</param>
         /// <param name="curYCoord">Координата y текущей точки</param>
@@ -606,7 +606,7 @@ namespace MastersThesis {
 
         #region Interpolation
         /// <summary>
-        /// Построение функции f(x,y) и построение интерполяций аппроксимирующих функций 
+        /// Построение интерполяций функции f(x,y) и аппроксимирующих функций 
         ///     G(A,x,y) - для текущей триангуляции, 
         ///     G_{prev}(A,x,y) - для parent триангуляции Делоне (если была построена триангуляция методом измельчения)
         /// </summary>
@@ -658,6 +658,7 @@ namespace MastersThesis {
                 DebugLog("Info", $"GnuPlot DT: {info}.");
                 #endregion
             }
+
             if (_applicationState == ApplicationState.MeshRefinement) {
                 double tmpApproxError_prev;
                 double maxApproxError_prev = 0;
@@ -764,6 +765,11 @@ namespace MastersThesis {
         #endregion
 
         #region Test & Debug
+        /// <summary>
+        /// Логгер
+        /// </summary>
+        /// <param name="type">Тип сообщения</param>
+        /// <param name="message">Сообщение</param>
         internal static void DebugLog(string type, string message) {
             File.AppendAllText("debug.log", $"{DateTime.Now} {type}: {message}\n");
         }

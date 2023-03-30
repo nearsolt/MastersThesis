@@ -147,7 +147,7 @@ namespace MastersThesis {
 
             #region Constructor & Properties
             /// <summary>
-            /// Конструктор для передачи данных (используем PlotType = SplotXYZ) в буфер
+            /// Конструктор для передачи данных в буфер (используем PlotType = SplotXYZ)
             /// </summary>
             /// <param name="x">Массив значений (координата x)</param>
             /// <param name="y">Массив значений (координата y)</param>

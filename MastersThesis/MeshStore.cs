@@ -81,7 +81,7 @@ namespace MastersThesis {
                 // Вычисляем псевдоскалярные произведения для второго ребра
                 double pseudoscalar3 = PseudoscalarProduct(new EdgeStore(-2, edge2.FirstNode, edge2.SecondNode), new EdgeStore(-2, edge2.FirstNode, edge1.FirstNode));
                 double pseudoscalar4 = PseudoscalarProduct(new EdgeStore(-2, edge2.FirstNode, edge2.SecondNode), new EdgeStore(-2, edge2.FirstNode, edge1.SecondNode));
-                
+
                 // Если псевдоскалярные произведения одного знака, то ребра не пересекаются
                 if ((pseudoscalar3 > 0 && pseudoscalar4 > 0) || (pseudoscalar3 < 0 && pseudoscalar4 < 0)) {
                     return false;
@@ -126,8 +126,7 @@ namespace MastersThesis {
             /// <param name="node3">Третий узел</param>
             /// <returns></returns>
             internal static bool IsCollinear(NodeStore node1, NodeStore node2, NodeStore node3) {
-                return (node2.XCoordinate - node1.XCoordinate) * (node3.YCoordinate - node1.YCoordinate) -
-                    (node2.YCoordinate - node1.YCoordinate) * (node3.XCoordinate - node1.XCoordinate) == 0;
+                return (node2.XCoordinate - node1.XCoordinate) * (node3.YCoordinate - node1.YCoordinate) - (node2.YCoordinate - node1.YCoordinate) * (node3.XCoordinate - node1.XCoordinate) == 0;
             }
             /// <summary>
             /// Проверка лежит ли узел node левее ориентированного ребра node1node2:
@@ -142,8 +141,7 @@ namespace MastersThesis {
             /// <param name="node2">Второй узел(конец ориентированного ребра)</param>
             /// <returns>true: проверяемый узел node лежит левее ориентированного ребра node1node2</returns>
             private static bool IsNodeLocatedOnLeft(NodeStore node, NodeStore node1, NodeStore node2) {
-                return (node1.XCoordinate - node.XCoordinate) * (node2.YCoordinate - node.YCoordinate) -
-                    (node1.YCoordinate - node.YCoordinate) * (node2.XCoordinate - node.XCoordinate) > 0;
+                return (node1.XCoordinate - node.XCoordinate) * (node2.YCoordinate - node.YCoordinate) - (node1.YCoordinate - node.YCoordinate) * (node2.XCoordinate - node.XCoordinate) > 0;
             }
             /// <summary>
             /// Вспомогательная функция для определения левого кандидата: 
@@ -151,7 +149,7 @@ namespace MastersThesis {
             /// </summary>
             /// <param name="node">Узел</param>
             /// <param name="edge">Ребро</param>
-            /// <returns>true: узел node лежит левее ориентированного ребра edge.fNsN</returns>
+            /// <returns>true: узел node лежит левее ориентированного ребра fNsN</returns>
             internal static bool LeftOf(NodeStore node, EdgeStore edge) {
                 return IsNodeLocatedOnLeft(node, edge.FirstNode, edge.SecondNode);
             }
@@ -161,7 +159,7 @@ namespace MastersThesis {
             /// </summary>
             /// <param name="node">Узел</param>
             /// <param name="edge">Ребро</param>
-            /// <returns>true: узел node лежит правее ориентированного ребра edge.fNsN</returns>
+            /// <returns>true: узел node лежит правее ориентированного ребра fNsN</returns>
             internal static bool RightOf(NodeStore node, EdgeStore edge) {
                 return IsNodeLocatedOnLeft(node, edge.SecondNode, edge.FirstNode);
             }
@@ -537,8 +535,7 @@ namespace MastersThesis {
             /// <param name="other">Другое ребро</param>
             /// <returns></returns>
             internal bool CommutativeEquals(EdgeStore other) {
-                return (_firstNode.Equals(other.FirstNode) && _secondNode.Equals(other.SecondNode)) ||
-                       (_firstNode.Equals(other.SecondNode) && _secondNode.Equals(other.FirstNode));
+                return (_firstNode.Equals(other.FirstNode) && _secondNode.Equals(other.SecondNode)) || (_firstNode.Equals(other.SecondNode) && _secondNode.Equals(other.FirstNode));
             }
             /// <summary>
             /// Получение другого узла ребра
