@@ -9,17 +9,6 @@ namespace MastersThesis {
             Application.SetCompatibleTextRenderingDefault(false);
             Application.SetHighDpiMode(HighDpiMode.PerMonitor);
             Application.Run(new MainForm());
-
-#warning ToDo
-            /* 
-             * ToDo: 
-             *                 
-             *      MainForm.cs                   
-             *                          ExactSolution
-             *                          #warnings
-             *                          
-             *      GnuPlot.cs
-            */
         }
     }
 }
