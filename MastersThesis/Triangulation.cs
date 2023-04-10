@@ -632,20 +632,20 @@ namespace MastersThesis {
             int nextTriangleID = _triangleList.Count;
 
             // Проходим по всем треугольникам
-            for (int index = 0; index < inputTriangleList.Count; index++) {
+            foreach (TriangleStore triangle in inputTriangleList) {
                 // Первое ребро треугольника поменяло ориентацию
                 bool isReverseEdge1;
                 // Второе ребро треугольника поменяло ориентацию
                 bool isReverseEdge2;
 
                 // Берем первые два ребра треугольника и определяем их ориентацию так, чтобы первые узлы каждого из ребер являлись общей точкой этих ребер
-                if (inputTriangleList[index].FirstEdge.FirstNode == inputTriangleList[index].SecondEdge.FirstNode) {
+                if (triangle.FirstEdge.FirstNode == triangle.SecondEdge.FirstNode) {
                     isReverseEdge1 = false;
                     isReverseEdge2 = false;
-                } else if (inputTriangleList[index].FirstEdge.FirstNode == inputTriangleList[index].SecondEdge.SecondNode) {
+                } else if (triangle.FirstEdge.FirstNode == triangle.SecondEdge.SecondNode) {
                     isReverseEdge1 = false;
                     isReverseEdge2 = true;
-                } else if (inputTriangleList[index].FirstEdge.SecondNode == inputTriangleList[index].SecondEdge.FirstNode) {
+                } else if (triangle.FirstEdge.SecondNode == triangle.SecondEdge.FirstNode) {
                     isReverseEdge1 = true;
                     isReverseEdge2 = false;
                 } else {
@@ -655,11 +655,11 @@ namespace MastersThesis {
 
                 // Список узлов первого ребра, включая внутренний узлы
                 List<NodeStore> nodeListOfEdge1 = new List<NodeStore>();
-                GetIntermediateNodes(inputTriangleList[index].FirstEdge, ref nodeListOfEdge1, isReverseEdge1, decimalPlaces, meshRefinementCoeff, ref nextNodeID);
+                GetIntermediateNodes(triangle.FirstEdge, ref nodeListOfEdge1, isReverseEdge1, decimalPlaces, meshRefinementCoeff, ref nextNodeID);
 
                 // Список узлов второго ребра, включая внутренний узлы
                 List<NodeStore> nodeListOfEdge2 = new List<NodeStore>();
-                GetIntermediateNodes(inputTriangleList[index].SecondEdge, ref nodeListOfEdge2, isReverseEdge2, decimalPlaces, meshRefinementCoeff, ref nextNodeID);
+                GetIntermediateNodes(triangle.SecondEdge, ref nodeListOfEdge2, isReverseEdge2, decimalPlaces, meshRefinementCoeff, ref nextNodeID);
 
                 // 0-я итерация
                 // Список узлов (узлы расположены на ребре, ||-ом третьему ребру), на предыдущей итерации (на 0-ой итерации - список содержит один узел - общий узел)
@@ -694,7 +694,6 @@ namespace MastersThesis {
                     }
                 }
             }
-
         }
         #endregion
 
