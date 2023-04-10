@@ -1,7 +1,7 @@
 ﻿namespace MastersThesis {
     partial class MainForm {
 
-        #region Class PlanarObjectStore & Base Classes (Node, Edge, Triangle, AnimationTracker)
+        #region Class PlanarObjectStore & Base Classes (Node, Edge, Triangle, TweenAnimation)
         internal class PlanarObjectStore {
 
             #region Private Class Variables
@@ -224,7 +224,7 @@
             }
             #endregion
 
-            #region Base Classes: Node, Edge, Triangle, AnimationTracker
+            #region Base Classes: Node, Edge, Triangle, TweenAnimation
             internal class Node {
 
                 #region Private Class Variables
