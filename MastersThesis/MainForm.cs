@@ -33,7 +33,7 @@ namespace MastersThesis {
             ParentDelaunayTriangulation = 4
         }
         /// <summary>
-        /// Текущиее состояние приложения
+        /// Текущее состояние приложения
         /// </summary>
         private ApplicationState _applicationState = ApplicationState.NodeGeneration;
         /// <summary>
