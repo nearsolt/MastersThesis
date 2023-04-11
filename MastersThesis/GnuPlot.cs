@@ -26,7 +26,7 @@ namespace MastersThesis {
         /// <summary>
         /// Конструктор
         /// </summary>
-        /// <param name="path"></param>
+        /// <param name="path">Путь к приложению GnuPlot</param>
         internal GnuPlot(string path) {
             _process = new Process();
             _process.StartInfo.FileName = path;
